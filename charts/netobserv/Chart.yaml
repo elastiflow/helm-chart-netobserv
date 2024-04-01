@@ -22,7 +22,7 @@ dependencies:
   # https://github.com/elastic/cloud-on-k8s
   - name: eck-operator
     repository: https://helm.elastic.co
-    version: "2.11.*"
+    version: "2.12.*"
     condition: elasticsearch.enabled
   # https://opensearch.org/docs/latest/install-and-configure/install-opensearch/helm/
   - name: opensearch
