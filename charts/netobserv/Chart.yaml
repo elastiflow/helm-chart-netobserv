@@ -27,5 +27,5 @@ dependencies:
   # https://opensearch.org/docs/latest/install-and-configure/install-opensearch/helm/
   - name: opensearch
     repository: https://opensearch-project.github.io/helm-charts/
-    version: "2.18.*"
+    version: "2.19.*"
     condition: opensearch.enabled
