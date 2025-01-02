@@ -1,34 +1,6 @@
 {
-  "dependencyDashboard": true,
-  "automerge": false,
+  "$schema": "https://docs.renovatebot.com/renovate-schema.json",
   "extends": [
-    "config:recommended"
-  ],
-  "schedule": [
-    "before 4am on the first day of the month"
-  ],
-  "reviewers": [
-    "team:ops"
-  ],
-  "terraform": {
-    "rangeStrategy": "bump"
-  },
-  "packageRules": [
-    {
-      "matchDatasources": [
-        "terraform-provider"
-      ],
-      "groupName": "Terraform providers",
-      "groupSlug": "tf-provider",
-      "automerge": false
-    },
-    {
-      "matchPackageNames": [
-        "terraform-linters/*"
-      ],
-      "groupName": "Terraform linters",
-      "groupSlug": "tf-linters",
-      "automerge": false
-    }
+    "github>elastiflow/renovate-config:tf-modules"
   ]
 }
