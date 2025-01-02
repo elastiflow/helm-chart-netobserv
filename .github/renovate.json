@@ -1,6 +1,16 @@
 {
-  "$schema": "https://docs.renovatebot.com/renovate-schema.json",
+  "dependencyDashboard": true,
+  "automerge": false,
   "extends": [
-    "github>elastiflow/renovate-config:tf-modules"
-  ]
+    "config:recommended"
+  ],
+  "schedule": [
+    "before 4am on the first day of the month"
+  ],
+  "reviewers": [
+    "team:ops"
+  ],
+  "terraform": {
+    "rangeStrategy": "bump"
+  }
 }
