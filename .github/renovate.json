@@ -12,23 +12,5 @@
   ],
   "terraform": {
     "rangeStrategy": "bump"
-  },
-  "packageRules": [
-    {
-      "matchDatasources": [
-        "terraform-provider"
-      ],
-      "groupName": "Terraform providers",
-      "groupSlug": "tf-provider",
-      "automerge": false
-    },
-    {
-      "matchPackageNames": [
-        "terraform-linters/*"
-      ],
-      "groupName": "Terraform linters",
-      "groupSlug": "tf-linters",
-      "automerge": false
-    }
-  ]
+  }
 }
