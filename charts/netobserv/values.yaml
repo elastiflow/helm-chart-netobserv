@@ -118,6 +118,8 @@ maxmind:
   # Enabling geoip will look up the country, subdivisions (regions), city, and
   # postal code associated with IPv4 and IPv6 addresses.
   geoipEnabled: false
+  # When geoip is enabled, this specifies the frequency in hours to update the MaxMind geoip database.
+  geoipUpdateFrequency: 24
   accountId: ""
   licenseKey: ""
 
