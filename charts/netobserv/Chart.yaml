@@ -3,7 +3,7 @@ name: netobserv
 description: ElastiFlow NetObserv
 type: application
 version: 0.4.5
-appVersion: 7.7.1
+appVersion: 7.10.3
 
 keywords:
   - netflow
