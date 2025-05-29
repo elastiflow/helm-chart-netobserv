@@ -219,11 +219,11 @@ ingress:
 
 resources:
   limits:
-    cpu: 100m
-    memory: 384Mi
+    cpu: 200m
+    memory: 768Mi
   requests:
-    cpu: 100m
-    memory: 384Mi
+    cpu: 200m
+    memory: 768Mi
 
 livenessProbe:
   enabled: true
