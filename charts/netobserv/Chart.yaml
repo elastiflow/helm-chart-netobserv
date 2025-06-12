@@ -2,8 +2,8 @@ apiVersion: v2
 name: netobserv
 description: ElastiFlow NetObserv
 type: application
-version: 0.4.5
-appVersion: 7.10.3
+version: 0.4.6
+appVersion: 7.11.1
 
 keywords:
   - netflow
