@@ -2,18 +2,22 @@ apiVersion: v2
 name: netobserv
 description: ElastiFlow NetObserv
 type: application
-version: 0.4.6
+version: 0.4.7
 appVersion: 7.11.1
-
-keywords:
-  - netflow
-  - network
-  - flow
-  - observability
-
+icon: https://artifacthub.io/image/a7c44004-9982-4ba1-a4c9-c626340d3d38@2x
 sources:
   - https://github.com/elastiflow/helm-chart-netobserv
   - https://hub.docker.com/r/elastiflow/flowcollector/
 maintainers:
   - name: ElastiFlow Engineering Team
     email: engineering@elastiflow.com
+annotations:
+  "artifacthub.io/license": Apache-2.0
+  "artifacthub.io/links": |
+    - name: Chart Source
+      url: https://github.com/elastiflow/helm-chart-netobserv
+keywords:
+  - netflow
+  - network
+  - flow
+  - observability
