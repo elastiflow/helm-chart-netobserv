@@ -75,7 +75,7 @@ spec:
             {{- toYaml . | nindent 12 }}
           {{- end }}
           {{- if .Values.license.accountId }}
-          - name: EF_ACCOUNT_ID
+            - name: EF_ACCOUNT_ID
               value: {{ .Values.license.accountId }}
           {{- end }}
           {{- if .Values.outputElasticsearch.enabled }}
