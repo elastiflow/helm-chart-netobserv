@@ -28,7 +28,7 @@ outputElasticsearch:
   enabled: false
   # Secret name to be used for the Elasticsearch password. If empty, the secret name defaults to `elasticsearch-es-elastic-user`
   secretRef: "elasticsearch-es-elastic-user"
-  # The key in the kubernetes scret that contains the Elasticsearch password.
+  # The key in the Kubernetes secret that contains the Elasticsearch password.
   secretKey: elastic
   tls:
     # Enable/disable TLS connections to Elasticsearch.
@@ -52,7 +52,7 @@ outputOpenSearch:
   enabled: false
   # Secret name to be used for the OpenSearch password. If empty, the secret name defaults to `opensearch-es-elastic-user`
   secretRef: "opensearch-user"
-  # The key in the kubernetes scret that contains the OpenSearch password.
+  # The key in the Kubernetes secret that contains the OpenSearch password.
   secretKey: opensearch-password
   tls:
     # Enable/disable TLS connections to OpenSearch.
@@ -94,9 +94,9 @@ license:
   # Specifies whether a secret should be created. If you don't have a license, no need to create a license secret.
   createSecret: false
   # Secret name to be used for the license. If empty, the secret name defaults to `netobserv-license`
-  # If no secret with a matching name exists, the value will be set from `licenseKey`.instead.
+  # If no secret with a matching name exists, the value will be set from `licenseKey` istead.
   secretRef: "netobserv-license"
-  # Set account id
+  # Set account ID
   accountId: ""
   # Set license key, if not set, value from secret will be used.
   # It is discouraged to store the license key in the values file. Consider
@@ -104,21 +104,21 @@ license:
   licenseKey: ""
 
 # If the EF_PROCESSOR_ENRICH_IPADDR_MAXMIND_ASN_ENABLE or EF_PROCESSOR_ENRICH_IPADDR_MAXMIND_GEOIP_ENABLE
-# environment variables are set to true, enable the corresponding service and provide a MaxMind acount id and license key:
+# environment variables are set to true, enable the corresponding service and provide a MaxMind account ID and license key:
 # https://dev.maxmind.com/geoip/geolite2-free-geolocation-data
 maxmind:
-  # Specifies whether a secret should be created for the maxmind license key.
+  # Specifies whether a secret should be created for the MaxMind license key.
   createSecret: false
   # Secret name to be used for the license. If empty, the secret name defaults to `maxmind-license`
-  # If no secret with a matching name exists, the value will be set from `licenseKey`.instead.
+  # If no secret with a matching name exists, the value will be set from `licenseKey`. Instead.
   secretRef: "maxmind-license"
-  # Enabling asn will look up the autonomous system number and autonomous system
+  # Enabling ASN will look up the autonomous system number and autonomous system
   # organization associated with IPv4 and IPv6 addresses.
   asnEnabled: false
-  # Enabling geoip will look up the country, subdivisions (regions), city, and
+  # Enabling GeoIP will look up the country, subdivisions (regions), city, and
   # postal code associated with IPv4 and IPv6 addresses.
   geoipEnabled: false
-  # When geoip is enabled, this specifies the frequency in hours to update the MaxMind geoip database.
+  # When GeoIP is enabled, this specifies the frequency in hours to update the MaxMind GeoIP database.
   geoipUpdateFrequency: 24
   accountId: ""
   licenseKey: ""
@@ -138,7 +138,7 @@ serviceAccount:
   # If not set and create is true, a name is generated using the fullname template
   name: ""
 
-# global common labels, applied to all ressources
+# Global common labels, applied to all resources
 commonLabels: {}
 
 podAnnotations: {}
@@ -159,16 +159,20 @@ securityContext: {}
 
 # The netobserv container's ports to expose.
 ports:
-  - name: netflow
-    containerPort: 9995
+  - containerPort: 9995
     protocol: UDP
+    name: netflow
+
+  - containerPort: 8080             # Exposes /livez and /readyz
+    protocol: TCP
+    name: healthcheck
+    
   # - name: ipfix
   #   containerPort: 4739
   #   protocol: UDP
   # - name: sflow
   #   containerPort: 6343
   #   protocol: UDP
-
 
 service:
   annotations: {}
@@ -192,6 +196,12 @@ service:
       targetPort: 9995
       protocol: UDP
       name: netflow
+
+    - port: 8080             # Exposes /livez and /readyz
+      targetPort: 8080
+      protocol: TCP
+      name: healthcheck
+      
     # - port: 4739
     #   targetPort: 4739
     #   protocol: UDP
