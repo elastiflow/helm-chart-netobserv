@@ -159,7 +159,7 @@ securityContext: {}
 
 # The netobserv container's ports to expose.
 ports:
-  - name: healthcheck
+  - name: api
     containerPort: 8080
     protocol: TCP
   - name: netflow
@@ -194,7 +194,7 @@ service:
     - port: 8080
       targetPort: 8080
       protocol: TCP
-      name: healthcheck
+      name: api
     - port: 9995
       targetPort: 9995
       protocol: UDP
