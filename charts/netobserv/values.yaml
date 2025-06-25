@@ -233,12 +233,10 @@ resources:
     memory: 2048Mi
 
 livenessProbe:
-  enabled: true
   httpGet:
     path: /livez
     port: 8080
 readinessProbe:
-  enabled: true
   httpGet:
     path: /readyz
     port: 8080
