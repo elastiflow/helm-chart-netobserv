@@ -94,7 +94,7 @@ license:
   # Specifies whether a secret should be created. If you don't have a license, no need to create a license secret.
   createSecret: false
   # Secret name to be used for the license. If empty, the secret name defaults to `netobserv-license`
-  # If no secret with a matching name exists, the value will be set from `licenseKey`.instead.
+  # If no secret with a matching name exists, the value will be set from `licenseKey` instead.
   secretRef: "netobserv-license"
   # Set account ID
   accountId: ""
@@ -110,7 +110,7 @@ maxmind:
   # Specifies whether a secret should be created for the MaxMind license key.
   createSecret: false
   # Secret name to be used for the license. If empty, the secret name defaults to `maxmind-license`
-  # If no secret with a matching name exists, the value will be set from `licenseKey`.instead.
+  # If no secret with a matching name exists, the value will be set from `licenseKey` instead.
   secretRef: "maxmind-license"
   # Enabling ASN will look up the autonomous system number and autonomous system
   # organization associated with IPv4 and IPv6 addresses.
