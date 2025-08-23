@@ -88,7 +88,7 @@ spec:
                   key: {{ .Values.outputElasticsearch.secretKey }}
           {{- if .Values.outputElasticsearch.ecs.enabled }}
             - name: EF_OUTPUT_ELASTICSEARCH_ECS_ENABLE
-                value: 'true'
+              value: 'true'
           {{- end }}
           {{- if .Values.outputElasticsearch.tls.enabled }}
             - name: EF_OUTPUT_ELASTICSEARCH_TLS_ENABLE
