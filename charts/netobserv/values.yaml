@@ -315,9 +315,15 @@ serviceMonitor:
   # Optional relabelings
   relabelings: []
   metricRelabelings: []
-  # Optional params to append to scrape requests (?foo=bar)
+  # Optional params to append to scrape requests, e.g.:
+  # params:
+  #   match[]:
+  #     - '{job="api"}'
+  #   foo:
+  #     - bar
+  # This will result in a request like: /metrics?match%5B%5D=%7Bjob%3D%22api%22%7D&foo=bar
   params: {}
-  # Authentication and TLS (if your endpoint requires it)
+  # Authentication and TLS
   bearerTokenSecret:
     enabled: false
     name: ""
