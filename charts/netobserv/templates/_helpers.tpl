@@ -40,7 +40,6 @@ helm.sh/chart: {{ include "netobserv.chart" . }}
 app.kubernetes.io/version: {{ .Chart.AppVersion | quote }}
 {{- end }}
 app.kubernetes.io/managed-by: {{ .Release.Service }}
-{{ include "netobserv.selectorLabels" . }}
 {{- range $k, $v := .Values.commonLabels }}
 {{ $k }}: {{ $v | quote }}
 {{- end }}
