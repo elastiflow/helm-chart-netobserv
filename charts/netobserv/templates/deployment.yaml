@@ -56,10 +56,6 @@ spec:
               {{- end }}
             - name: GEOIPUPDATE_DB_DIR
               value: /data
-            {{- if .Values.maxmind.geoipEnabled }}
-            - name: GEOIPUPDATE_FREQUENCY
-              value: "{{ .Values.maxmind.geoipUpdateFrequency }}"
-            {{- end }}
           volumeMounts:
             - name: geolite2-data
               mountPath: /data
@@ -88,7 +84,7 @@ spec:
                   key: {{ .Values.outputElasticsearch.secretKey }}
           {{- if .Values.outputElasticsearch.ecs.enabled }}
             - name: EF_OUTPUT_ELASTICSEARCH_ECS_ENABLE
-                value: 'true'
+              value: 'true'
           {{- end }}
           {{- if .Values.outputElasticsearch.tls.enabled }}
             - name: EF_OUTPUT_ELASTICSEARCH_TLS_ENABLE
@@ -195,6 +191,10 @@ spec:
               {{- end }}
             - name: GEOIPUPDATE_DB_DIR
               value: /data
+            {{- if .Values.maxmind.geoipEnabled }}
+            - name: GEOIPUPDATE_FREQUENCY
+              value: "{{ .Values.maxmind.geoipUpdateFrequency }}"
+            {{- end }}
           volumeMounts:
             - name: geolite2-data
               mountPath: /data
