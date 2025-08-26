@@ -298,6 +298,12 @@ serviceMonitor:
   namespace: ""
   # Extra labels to add to the ServiceMonitor (e.g., release: prometheus)
   labels: {}
+  # Select Services to scrape across namespaces
+  namespaceSelector:
+    # When true, select Services in all namespaces. If true, matchNames is ignored.
+    any: false
+    # Explicit list of namespaces to match. Defaults to the release namespace when empty and any=false.
+    matchNames: []
   # Endpoint settings
   interval: 30s
   scrapeTimeout: 10s
@@ -309,3 +315,26 @@ serviceMonitor:
   # Optional relabelings
   relabelings: []
   metricRelabelings: []
+  # Optional params to append to scrape requests (?foo=bar)
+  params: {}
+  # Authentication and TLS (if your endpoint requires it)
+  bearerTokenSecret:
+    enabled: false
+    name: ""
+    key: ""
+  tlsConfig:
+    enabled: false
+    insecureSkipVerify: false
+    serverName: ""
+    caFile: ""
+    certFile: ""
+    keyFile: ""
+  # Limits and labeling
+  jobLabel: ""
+  targetLabels: []
+  sampleLimit: 0
+  labelLimit: 0
+  labelNameLengthLimit: 0
+  labelValueLengthLimit: 0
+  followRedirects: true
+  proxyUrl: ""

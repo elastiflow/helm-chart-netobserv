@@ -16,8 +16,15 @@ spec:
     matchLabels:
       {{- include "netobserv.selectorLabels" . | nindent 6 }}
   namespaceSelector:
+    {{- if .Values.serviceMonitor.namespaceSelector.any }}
+    any: true
+    {{- else if .Values.serviceMonitor.namespaceSelector.matchNames }}
+    matchNames:
+      {{- toYaml .Values.serviceMonitor.namespaceSelector.matchNames | nindent 6 }}
+    {{- else }}
     matchNames:
       - {{ .Release.Namespace }}
+    {{- end }}
   endpoints:
     - port: {{ .Values.serviceMonitor.portName }}
       path: {{ .Values.serviceMonitor.path }}
@@ -25,6 +32,32 @@ spec:
       scrapeTimeout: {{ .Values.serviceMonitor.scrapeTimeout }}
       scheme: {{ .Values.serviceMonitor.scheme }}
       honorLabels: {{ .Values.serviceMonitor.honorLabels }}
+      followRedirects: {{ .Values.serviceMonitor.followRedirects }}
+      {{- with .Values.serviceMonitor.params }}
+      params:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- if .Values.serviceMonitor.bearerTokenSecret.enabled }}
+      bearerTokenSecret:
+        name: {{ .Values.serviceMonitor.bearerTokenSecret.name }}
+        key: {{ .Values.serviceMonitor.bearerTokenSecret.key }}
+      {{- end }}
+      {{- if .Values.serviceMonitor.tlsConfig.enabled }}
+      tlsConfig:
+        insecureSkipVerify: {{ .Values.serviceMonitor.tlsConfig.insecureSkipVerify }}
+        {{- with .Values.serviceMonitor.tlsConfig.serverName }}
+        serverName: {{ . | quote }}
+        {{- end }}
+        {{- with .Values.serviceMonitor.tlsConfig.caFile }}
+        caFile: {{ . | quote }}
+        {{- end }}
+        {{- with .Values.serviceMonitor.tlsConfig.certFile }}
+        certFile: {{ . | quote }}
+        {{- end }}
+        {{- with .Values.serviceMonitor.tlsConfig.keyFile }}
+        keyFile: {{ . | quote }}
+        {{- end }}
+      {{- end }}
       {{- with .Values.serviceMonitor.relabelings }}
       relabelings:
         {{- toYaml . | nindent 8 }}
@@ -33,6 +66,28 @@ spec:
       metricRelabelings:
         {{- toYaml . | nindent 8 }}
       {{- end }}
+  {{- with .Values.serviceMonitor.jobLabel }}
+  jobLabel: {{ . }}
+  {{- end }}
+  {{- with .Values.serviceMonitor.targetLabels }}
+  targetLabels:
+    {{- toYaml . | nindent 2 }}
+  {{- end }}
+  {{- if .Values.serviceMonitor.sampleLimit }}
+  sampleLimit: {{ .Values.serviceMonitor.sampleLimit }}
+  {{- end }}
+  {{- if .Values.serviceMonitor.labelLimit }}
+  labelLimit: {{ .Values.serviceMonitor.labelLimit }}
+  {{- end }}
+  {{- if .Values.serviceMonitor.labelNameLengthLimit }}
+  labelNameLengthLimit: {{ .Values.serviceMonitor.labelNameLengthLimit }}
+  {{- end }}
+  {{- if .Values.serviceMonitor.labelValueLengthLimit }}
+  labelValueLengthLimit: {{ .Values.serviceMonitor.labelValueLengthLimit }}
+  {{- end }}
+  {{- with .Values.serviceMonitor.proxyUrl }}
+  proxyUrl: {{ . | quote }}
+  {{- end }}
 {{- end }}
 
 

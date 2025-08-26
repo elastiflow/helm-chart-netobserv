@@ -51,9 +51,9 @@ For additional environment configurations, please refer to the [configuration re
 
 ### Prometheus Operator ServiceMonitor
 
-If you use the Prometheus Operator, you can enable a `ServiceMonitor` to scrape metrics from the collector Service.
+If you use the Prometheus Operator, you can enable a `ServiceMonitor` to scrape metrics from the flow collector Service.
 
-Example values:
+Quick start:
 
 ```yaml
 serviceMonitor:
