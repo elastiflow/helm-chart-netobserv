@@ -290,3 +290,22 @@ extraVolumeMounts: []
   #   mountPath: /data
   #   subPath: ""
   #   readOnly: true
+
+# Prometheus Operator ServiceMonitor
+serviceMonitor:
+  enabled: false
+  # Create the ServiceMonitor in a specific namespace (defaults to release namespace when empty)
+  namespace: ""
+  # Extra labels to add to the ServiceMonitor (e.g., release: prometheus)
+  labels: {}
+  # Endpoint settings
+  interval: 30s
+  scrapeTimeout: 10s
+  path: /metrics
+  scheme: http
+  honorLabels: false
+  # Name of the Service port to scrape
+  portName: api
+  # Optional relabelings
+  relabelings: []
+  metricRelabelings: []

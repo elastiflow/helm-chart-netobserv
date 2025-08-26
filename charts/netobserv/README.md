@@ -49,6 +49,25 @@ For additional kubernetes configuration information, please refer to the comment
 
 For additional environment configurations, please refer to the [configuration reference guide](https://docs.elastiflow.com/docs/config_ref/).
 
+### Prometheus Operator ServiceMonitor
+
+If you use the Prometheus Operator, you can enable a `ServiceMonitor` to scrape metrics from the collector Service.
+
+Example values:
+
+```yaml
+serviceMonitor:
+  enabled: true
+  # If your Prometheus Operator selects ServiceMonitors by label, add it here
+  labels:
+    release: prometheus
+  # Scrape the Service's named port
+  portName: api
+  path: /metrics
+  interval: 30s
+  scrapeTimeout: 10s
+```
+
 ## License
 
 This project is licensed under the [Apache 2.0 License](./LICENSE).
