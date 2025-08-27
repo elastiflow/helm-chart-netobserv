@@ -290,3 +290,57 @@ extraVolumeMounts: []
   #   mountPath: /data
   #   subPath: ""
   #   readOnly: true
+
+# Prometheus Operator ServiceMonitor
+serviceMonitor:
+  enabled: false
+  # Create the ServiceMonitor in a specific namespace (defaults to release namespace when empty)
+  namespace: ""
+  # Extra labels to add to the ServiceMonitor (e.g., release: prometheus)
+  labels: {}
+  # Select Services to scrape across namespaces
+  namespaceSelector:
+    # When true, select Services in all namespaces. If true, matchNames is ignored.
+    any: false
+    # Explicit list of namespaces to match. Defaults to the release namespace when empty and any=false.
+    matchNames: []
+  # Endpoint settings
+  interval: 30s
+  scrapeTimeout: 10s
+  path: /metrics
+  scheme: http
+  honorLabels: false
+  # Name of the Service port to scrape
+  portName: api
+  # Optional relabelings
+  relabelings: []
+  metricRelabelings: []
+  # Optional params to append to scrape requests, e.g.:
+  # params:
+  #   match[]:
+  #     - '{job="api"}'
+  #   foo:
+  #     - bar
+  # This will result in a request like: /metrics?match%5B%5D=%7Bjob%3D%22api%22%7D&foo=bar
+  params: {}
+  # Authentication and TLS
+  bearerTokenSecret:
+    enabled: false
+    name: ""
+    key: ""
+  tlsConfig:
+    enabled: false
+    insecureSkipVerify: false
+    serverName: ""
+    caFile: ""
+    certFile: ""
+    keyFile: ""
+  # Limits and labeling
+  jobLabel: ""
+  targetLabels: []
+  sampleLimit: 0
+  labelLimit: 0
+  labelNameLengthLimit: 0
+  labelValueLengthLimit: 0
+  followRedirects: true
+  proxyUrl: ""
