@@ -134,11 +134,11 @@ spec:
           ports: {{ .Values.ports | toYaml | nindent 12 }}
           {{- if .Values.livenessProbe.enabled }}
           livenessProbe:
-            {{- omit .Values.livenessProbe "enabled" | toYaml | nindent 12 }}         
+            {{- omit .Values.livenessProbe "enabled" | toYaml | nindent 12 }}
           {{- end }}
           {{- if .Values.readinessProbe.enabled }}
           readinessProbe:
-            {{- omit .Values.readinessProbe "enabled" | toYaml | nindent 12 }}         
+            {{- omit .Values.readinessProbe "enabled" | toYaml | nindent 12 }}
           {{- end }}
           resources:
             {{- toYaml .Values.resources | nindent 12 }}
