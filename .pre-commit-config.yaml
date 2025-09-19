@@ -10,4 +10,4 @@ repos:
         files: \.(json)$
       - id: check-yaml
         files: \.(yaml|yml)$
-        exclude: chart/.*
+        exclude: charts/.*
