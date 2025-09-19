@@ -232,6 +232,11 @@ resources:
     cpu: 1
     memory: 2048Mi
 
+startupProbe:
+  enabled: true
+  httpGet:
+    path: /readyz
+    port: 8080
 livenessProbe:
   enabled: true
   httpGet:
@@ -245,13 +250,15 @@ readinessProbe:
 
 autoscaling:
   enabled: false
-  minReplicas: 1
-  maxReplicas: 100
+  minReplicas: 2
+  maxReplicas: 2
   metrics:
     - type: Resource
       resource:
         name: cpu
-        targetAverageUtilization: 80
+        target:
+          averageUtilization: 80
+          type: Utilization
     # - type: Resource
     #   resource:
     #     name: memory
@@ -344,3 +351,6 @@ serviceMonitor:
   labelValueLengthLimit: 0
   followRedirects: true
   proxyUrl: ""
+
+opensearch:
+  enabled: false
