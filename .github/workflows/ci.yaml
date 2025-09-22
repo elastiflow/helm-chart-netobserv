@@ -37,7 +37,7 @@ jobs:
           python-version: "3.13"
           check-latest: true
       - name: Build helm dependencies
-        run:
+        run: |
           helm repo add opensearch https://opensearch-project.github.io/helm-charts/
           helm dependency build charts/netobserv
       - name: Set up chart-testing
