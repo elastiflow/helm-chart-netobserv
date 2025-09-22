@@ -56,6 +56,17 @@ outputElasticSearch:
     # Enable/disable the use of the Elastic Common Schema (ECS).
     enable: false
 
+  # Provision or not the ElasticSearch Kibana dashboards in the ElasticSearch cluster
+  # https://www.elastiflow.com/docs/data_platforms/elastic/kibana/
+  # Uses ElasticSearch username/password from the secret
+  dashboards:
+    provision: false
+    url: 'https://raw.githubusercontent.com/elastiflow/elastiflow_for_elasticsearch/master/kibana/flow/kibana-8.14.x-flow-codex.ndjson'
+    kibana_url: "http://localhost:5601"
+    override: false
+    tls:
+      validate_certs: false
+
 # The OpenSearch output can be used to send records to an OpenSearch cluster.
 # https://docs.elastiflow.com/docs/config_ref/common/output_opensearch
 outputOpenSearch:
@@ -90,6 +101,19 @@ outputOpenSearch:
   ecs:
     # Enable/disable the use of the Elastic Common Schema (ECS).
     enable: false
+
+  # Provision or not the OpenSearch Dashboards dashboards in the OpenSearch cluster
+  # https://www.elastiflow.com/docs/data_platforms/opensearch/dashboards/
+  # Uses OpenSearch username/password from the secret
+  dashboards:
+    provision: false
+    # Dashboards source URL
+    url: 'https://raw.githubusercontent.com/elastiflow/elastiflow_for_opensearch/main/dashboards/flow/dashboards-2.14.x-flow-codex.ndjson'
+    # OpenSearch Dashboards address with port (address:port)
+    dashboards_url: "http://localhost:5601"
+    override: false
+    tls:
+      validate_certs: false
 
 # The Kafka output can be used to send records to Apache Kafka, Confluent Platform,
 # Confluent Cloud, Redpanda and Amazon Managed Streaming for Apache Kafka (Amazon MSK).
@@ -260,6 +284,8 @@ resources:
 
 startupProbe:
   enabled: true
+  initialDelaySeconds: 60
+  failureThreshold: 10
   httpGet:
     path: /readyz
     port: 8080
@@ -304,9 +330,7 @@ autoscaling:
   #         periodSeconds: 15
 
 tolerations: []
-
 affinity: {}
-
 topologySpreadConstraints: []
 
 extraVolumes: []

@@ -64,9 +64,7 @@ Create the name of the service account to use
 {{- end }}
 {{- end }}
 
-{{/*
-Determine if volumes need to be created
-*/}}
+{{/* Determine if volumes need to be created */}}
 {{- define "volumesEnabled" -}}
   {{- or
     .Values.maxmind.asnEnabled
@@ -78,9 +76,7 @@ Determine if volumes need to be created
   -}}
 {{- end -}}
 
-{{/*
-Determine if volumeMounts need to be created
-*/}}
+{{/* Determine if volumeMounts need to be created */}}
 {{- define "volumeMountsEnabled" -}}
   {{- or
     .Values.maxmind.asnEnabled
@@ -92,9 +88,7 @@ Determine if volumeMounts need to be created
   -}}
 {{- end -}}
 
-{{/*
-Determine ElasticSearch credentials secret name
-*/}}
+{{/* Define ElasticSearch credentials secret name */}}
 {{- define "netobserv.elasticSearchCredentialsSecretName" -}}
   {{- if (.Values.outputElasticSearch.secretName | empty) -}}
   {{ include "netobserv.fullname" . }}-es-creds
@@ -103,13 +97,23 @@ Determine ElasticSearch credentials secret name
   {{- end -}}
 {{- end -}}
 
-{{/*
-Determine OpenSearch credentials secret name
-*/}}
+{{/* Define OpenSearch credentials secret name */}}
 {{- define "netobserv.openSearchCredentialsSecretName" -}}
   {{- if (.Values.outputOpenSearch.secretName | empty) -}}
   {{ include "netobserv.fullname" . }}-os-creds
   {{- else -}}
   {{ .Values.outputOpenSearch.secretName }}
   {{- end -}}
+{{- end -}}
+
+{{/*
+  Define OpenSearch Dashboards dashboards import command
+
+   --form file=@dashboards-1.0.x-codex-light.ndjson
+*/}}
+{{- define "netobserv.osDashboardsImportCMD" -}}
+{{- $insecure := .Values.outputOpenSearch.dashboards.tls.validate_certs | ternary "-k" "" -}}
+{{- $headers := `-H "osd-xsrf: true" -H "securitytenant: global"` -}}
+{{- $form := "--form file=@/tmp/dashboards.ndjson" -}}
+curl -XPOST {{ $insecure }} {{ $headers }} {{ $form }} -u "${EF_OUTPUT_OPENSEARCH_USERNAME}:${EF_OUTPUT_OPENSEARCH_PASSWORD}" "{{ .Values.outputOpenSearch.dashboards.dashboards_url }}/api/saved_objects/_import?overwrite={{ .Values.outputOpenSearch.dashboards.override }}"
 {{- end -}}
