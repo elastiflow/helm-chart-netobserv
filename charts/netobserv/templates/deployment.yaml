@@ -42,7 +42,7 @@ spec:
             - name: GEOIPUPDATE_LICENSE_KEY
               valueFrom:
                 secretKeyRef:
-                  name: {{ .Values.maxmind.secretRef }}
+                  name: {{ .Values.maxmind.secretName }}
                   key: license
             - name: GEOIPUPDATE_EDITION_IDS
               {{- if and .Values.maxmind.asnEnabled (not .Values.maxmind.geoipEnabled) }}
@@ -67,69 +67,87 @@ spec:
           image: "{{ .Values.image.repository }}:{{ .Values.image.tag | default .Chart.AppVersion }}"
           imagePullPolicy: {{ .Values.image.pullPolicy }}
           env:
-          {{- with .Values.env }}
-            {{- toYaml . | nindent 12 }}
-          {{- end }}
           {{- if .Values.license.accountId }}
             - name: EF_ACCOUNT_ID
               value: {{ .Values.license.accountId | quote }}
-          {{- end }}
-          {{- if .Values.outputElasticsearch.enabled }}
-            - name: EF_OUTPUT_ELASTICSEARCH_ENABLE
-              value: 'true'
-            - name: EF_OUTPUT_ELASTICSEARCH_PASSWORD
-              valueFrom:
-                secretKeyRef:
-                  name: {{ .Values.outputElasticsearch.secretRef }}
-                  key: {{ .Values.outputElasticsearch.secretKey }}
-          {{- if .Values.outputElasticsearch.ecs.enabled }}
-            - name: EF_OUTPUT_ELASTICSEARCH_ECS_ENABLE
-              value: 'true'
-          {{- end }}
-          {{- if .Values.outputElasticsearch.tls.enabled }}
-            - name: EF_OUTPUT_ELASTICSEARCH_TLS_ENABLE
-              value: 'true'
-            - name: "EF_OUTPUT_ELASTICSEARCH_TLS_CA_CERT_FILEPATH"
-              value: "{{ .Values.outputElasticsearch.tls.caMountPath }}/{{ .Values.outputElasticsearch.tls.caFileName }}"
-          {{- end }}
-          {{- end }}
-          {{- if .Values.outputOpenSearch.enabled }}
-            - name: EF_OUTPUT_OPENSEARCH_ENABLE
-              value: 'true'
-            - name: EF_OUTPUT_OPENSEARCH_PASSWORD
-              valueFrom:
-                secretKeyRef:
-                  name: {{ .Values.outputOpenSearch.secretRef }}
-                  key: {{ .Values.outputOpenSearch.secretKey }}
-          {{- if .Values.outputOpenSearch.ecs.enabled }}
-            - name: EF_OUTPUT_OPENSEARCH_ECS_ENABLE
-              value: 'true'
-          {{- end }}
-          {{- if .Values.outputOpenSearch.tls.enabled }}
-            - name: EF_OUTPUT_OPENSEARCH_TLS_ENABLE
-              value: 'true'
-            - name: "EF_OUTPUT_OPENSEARCH_TLS_CA_CERT_FILEPATH"
-              value: "{{ .Values.outputOpenSearch.tls.caMountPath }}/{{ .Values.outputOpenSearch.tls.caFileName }}"
-          {{- end }}
           {{- end }}
           {{- if .Values.license.createSecret }}
             - name: EF_FLOW_LICENSE_KEY
               valueFrom:
                 secretKeyRef:
-                  name: {{ .Values.license.secretRef }}
+                  name: {{ .Values.license.secretName }}
                   key: license
           {{- end }}
-          {{- if .Values.outputKafka.enabled }}
+          {{- if .Values.outputElasticSearch.enable }} {{/* Start ElasticSearch */}}
+            - name: EF_OUTPUT_ELASTICSEARCH_ENABLE
+              value: {{ .Values.outputElasticSearch.enable | quote }}
+            - name: EF_OUTPUT_ELASTICSEARCH_ADDRESSES
+              value: {{ .Values.outputElasticSearch.addresses }}
+            - name: EF_OUTPUT_ELASTICSEARCH_USERNAME
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "netobserv.elasticSearchCredentialsSecretName" . }}
+                  key: {{ .Values.outputElasticSearch.secretKeyUser }}
+            - name: EF_OUTPUT_ELASTICSEARCH_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "netobserv.elasticSearchCredentialsSecretName" . }}
+                  key: {{ .Values.outputElasticSearch.secretKeyPassword }}
+            - name: EF_OUTPUT_ELASTICSEARCH_ECS_ENABLE
+              value: {{ .Values.outputElasticSearch.ecs.enable | quote}}
+            {{- if .Values.outputElasticSearch.tls.enable }}
+            - name: EF_OUTPUT_ELASTICSEARCH_TLS_ENABLE
+              value: {{ .Values.outputElasticSearch.tls.enable | quote }}
+            - name: EF_OUTPUT_ELASTICSEARCH_TLS_SKIP_VERIFICATION
+              value: {{ .Values.outputElasticSearch.tls.skipVerification | quote }}
+            {{- if and .Values.outputElasticSearch.tls.enable (not (eq .Values.outputElasticSearch.tls.caConfigMapName "")) }}
+            - name: "EF_OUTPUT_ELASTICSEARCH_TLS_CA_CERT_FILEPATH"
+              value: "{{ .Values.outputElasticSearch.tls.caMountPath }}/{{ .Values.outputElasticSearch.tls.caFileName }}"
+            {{- end }}
+            {{- end }}
+          {{- end }} {{/* End ElasticSearch */}}
+          {{- if .Values.outputOpenSearch.enable }} {{/* Start OpenSearch */}}
+            - name: EF_OUTPUT_OPENSEARCH_ENABLE
+              value: {{ .Values.outputOpenSearch.enable | quote }}
+            - name: EF_OUTPUT_OPENSEARCH_ADDRESSES
+              value: {{ .Values.outputOpenSearch.addresses }}
+            - name: EF_OUTPUT_OPENSEARCH_USERNAME
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "netobserv.openSearchCredentialsSecretName" . }}
+                  key: {{ .Values.outputOpenSearch.secretKeyUser }}
+            - name: EF_OUTPUT_OPENSEARCH_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "netobserv.openSearchCredentialsSecretName" . }}
+                  key: {{ .Values.outputOpenSearch.secretKeyPassword }}
+            - name: EF_OUTPUT_OPENSEARCH_ECS_ENABLE
+              value: {{ .Values.outputOpenSearch.ecs.enable | quote}}
+            {{- if .Values.outputOpenSearch.tls.enable }}
+            - name: EF_OUTPUT_OPENSEARCH_TLS_ENABLE
+              value: {{ .Values.outputOpenSearch.tls.enable | quote }}
+            - name: EF_OUTPUT_OPENSEARCH_TLS_SKIP_VERIFICATION
+              value: {{ .Values.outputOpenSearch.tls.skipVerification | quote }}
+            {{- if and .Values.outputOpenSearch.tls.enable (not (eq .Values.outputOpenSearch.tls.caConfigMapName "")) }}
+            - name: "EF_OUTPUT_OPENSEARCH_TLS_CA_CERT_FILEPATH"
+              value: "{{ .Values.outputOpenSearch.tls.caMountPath }}/{{ .Values.outputOpenSearch.tls.caFileName }}"
+            {{- end }}
+            {{- end }}
+          {{- end }} {{/* End OpenSearch */}}
+          {{- if .Values.outputKafka.enable }} {{/* Start Kafka */}}
             - name: EF_OUTPUT_KAFKA_ENABLE
               value: 'true'
             - name: "EF_OUTPUT_KAFKA_BROKERS"
               value: {{ .Values.outputKafka.brokers | quote }}
-          {{- if .Values.outputKafka.tls.enabled }}
+            {{- if .Values.outputKafka.tls.enable }}
             - name: EF_OUTPUT_KAFKA_TLS_ENABLE
               value: 'true'
             - name: "EF_OUTPUT_KAFKA_TLS_CA_CERT_FILEPATH"
               value: "{{ .Values.outputKafka.tls.caMountPath }}/{{ .Values.outputKafka.tls.caFileName }}"
-          {{- end }}
+            {{- end }}
+          {{- end }} {{/* End Kafka */}}
+          {{- with .Values.env }}
+            {{- toYaml . | nindent 12 }}
           {{- end }}
           ports: {{ .Values.ports | toYaml | nindent 12 }}
           {{- if .Values.livenessProbe.enabled }}
@@ -152,18 +170,18 @@ spec:
             - name: geolite2-data
               mountPath: /etc/elastiflow/maxmind
             {{- end }}
-            {{- if .Values.outputKafka.tls.enabled }}
-            - name: {{ .Values.outputKafka.tls.caConfigMap }}
+            {{- if and .Values.outputKafka.tls.enable (not (eq .Values.outputKafka.tls.caConfigMapName "")) }}
+            - name: {{ .Values.outputKafka.tls.caConfigMapName }}
               mountPath: {{ .Values.outputKafka.tls.caMountPath }}
               readOnly: true
             {{- end }}
-            {{- if .Values.outputElasticsearch.tls.enabled }}
-            - name: {{ .Values.outputElasticsearch.tls.caConfigMap }}
-              mountPath: {{ .Values.outputElasticsearch.tls.caMountPath }}
+            {{- if and .Values.outputElasticSearch.tls.enable (not (eq .Values.outputElasticSearch.tls.caConfigMapName "")) }}
+            - name: {{ .Values.outputElasticSearch.tls.caConfigMapName }}
+              mountPath: {{ .Values.outputElasticSearch.tls.caMountPath }}
               readOnly: true
             {{- end }}
-            {{- if .Values.outputOpenSearch.tls.enabled }}
-            - name: {{ .Values.outputOpenSearch.tls.caConfigMap }}
+            {{- if and .Values.outputOpenSearch.tls.enable (not (eq .Values.outputOpenSearch.tls.caConfigMapName "")) }}
+            - name: {{ .Values.outputOpenSearch.tls.caConfigMapName }}
               mountPath: {{ .Values.outputOpenSearch.tls.caMountPath }}
               readOnly: true
             {{- end }}
@@ -181,7 +199,7 @@ spec:
             - name: GEOIPUPDATE_LICENSE_KEY
               valueFrom:
                 secretKeyRef:
-                  name: {{ .Values.maxmind.secretRef }}
+                  name: {{ .Values.maxmind.secretName }}
                   key: license
             - name: GEOIPUPDATE_EDITION_IDS
               {{- if and .Values.maxmind.asnEnabled (not .Values.maxmind.geoipEnabled) }}
@@ -209,26 +227,26 @@ spec:
         - name: geolite2-data
           emptyDir: {}
         {{- end }}
-        {{- if .Values.outputKafka.tls.enabled }}
-        - name: {{ .Values.outputKafka.tls.caConfigMap }}
+        {{- if and .Values.outputKafka.tls.enable (not (eq .Values.outputKafka.tls.caConfigMapName "")) }}
+        - name: {{ .Values.outputKafka.tls.caConfigMapName }}
           configMap:
-            name: {{ .Values.outputKafka.tls.caConfigMap }}
+            name: {{ .Values.outputKafka.tls.caConfigMapName }}
             items:
               - key: {{ .Values.outputKafka.tls.caConfigMapKey }}
                 path: {{ .Values.outputKafka.tls.caFileName }}
         {{- end }}
-        {{- if .Values.outputElasticsearch.tls.enabled }}
-        - name: {{ .Values.outputElasticsearch.tls.caConfigMap }}
+        {{- if and .Values.outputElasticSearch.tls.enable (not (eq .Values.outputElasticSearch.tls.caConfigMapName "")) }}
+        - name: {{ .Values.outputElasticSearch.tls.caConfigMapName }}
           configMap:
-            name: {{ .Values.outputElasticsearch.tls.caConfigMap }}
+            name: {{ .Values.outputElasticSearch.tls.caConfigMapName }}
             items:
-              - key: {{ .Values.outputElasticsearch.tls.caConfigMapKey }}
-                path: {{ .Values.outputElasticsearch.tls.caFileName }}
+              - key: {{ .Values.outputElasticSearch.tls.caConfigMapKey }}
+                path: {{ .Values.outputElasticSearch.tls.caFileName }}
         {{- end }}
-        {{- if .Values.outputOpenSearch.tls.enabled }}
-        - name: {{ .Values.outputOpenSearch.tls.caConfigMap }}
+        {{- if and .Values.outputOpenSearch.tls.enable (not (eq .Values.outputOpenSearch.tls.caConfigMapName "")) }}
+        - name: {{ .Values.outputOpenSearch.tls.caConfigMapName }}
           configMap:
-            name: {{ .Values.outputOpenSearch.tls.caConfigMap }}
+            name: {{ .Values.outputOpenSearch.tls.caConfigMapName }}
             items:
               - key: {{ .Values.outputOpenSearch.tls.caConfigMapKey }}
                 path: {{ .Values.outputOpenSearch.tls.caFileName }}
@@ -243,5 +261,9 @@ spec:
       {{- end }}
       {{- with .Values.tolerations }}
       tolerations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.topologySpreadConstraints }}
+      topologySpreadConstraints:
         {{- toYaml . | nindent 8 }}
       {{- end }}

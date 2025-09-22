@@ -71,9 +71,9 @@ Determine if volumes need to be created
   {{- or
     .Values.maxmind.asnEnabled
     .Values.maxmind.geoipEnabled
-    .Values.outputKafka.tls.enabled
-    .Values.outputElasticsearch.tls.enabled
-    .Values.outputOpenSearch.tls.enabled
+    (and .Values.outputKafka.tls.enable (not (eq .Values.outputKafka.tls.caConfigMapName "")))
+    (and .Values.outputElasticSearch.tls.enable (not (eq .Values.outputElasticSearch.tls.caConfigMapName "")))
+    (and .Values.outputOpenSearch.tls.enable (not (eq .Values.outputOpenSearch.tls.caConfigMapName "")))
     (not (empty .Values.extraVolumes))
   -}}
 {{- end -}}
@@ -85,9 +85,31 @@ Determine if volumeMounts need to be created
   {{- or
     .Values.maxmind.asnEnabled
     .Values.maxmind.geoipEnabled
-    .Values.outputKafka.tls.enabled
-    .Values.outputElasticsearch.tls.enabled
-    .Values.outputOpenSearch.tls.enabled
+    (and .Values.outputKafka.tls.enable (not (eq .Values.outputKafka.tls.caConfigMapName "")))
+    (and .Values.outputElasticSearch.tls.enable (not (eq .Values.outputElasticSearch.tls.caConfigMapName "")))
+    (and .Values.outputOpenSearch.tls.enable (not (eq .Values.outputOpenSearch.tls.caConfigMapName "")))
     (not (empty .Values.extraVolumeMounts))
   -}}
+{{- end -}}
+
+{{/*
+Determine ElasticSearch credentials secret name
+*/}}
+{{- define "netobserv.elasticSearchCredentialsSecretName" -}}
+  {{- if (.Values.outputElasticSearch.secretName | empty) -}}
+  {{ include "netobserv.fullname" . }}-es-creds
+  {{- else -}}
+  {{ .Values.outputElasticSearch.secretName }}
+  {{- end -}}
+{{- end -}}
+
+{{/*
+Determine OpenSearch credentials secret name
+*/}}
+{{- define "netobserv.openSearchCredentialsSecretName" -}}
+  {{- if (.Values.outputOpenSearch.secretName | empty) -}}
+  {{ include "netobserv.fullname" . }}-os-creds
+  {{- else -}}
+  {{ .Values.outputOpenSearch.secretName }}
+  {{- end -}}
 {{- end -}}

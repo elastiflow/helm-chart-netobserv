@@ -21,72 +21,94 @@ env:
   # Additional information for available environment variables can be found via
   # the ElastiFlow documentation: https://docs.elastiflow.com/docs/config_ref
 
-# The Elasticsearch output can be used to send records to an Elasticsearch cluster.
+# The ElasticSearch output can be used to send records to an ElasticSearch cluster.
 # https://docs.elastiflow.com/docs/config_ref/common/output_elasticsearch
-outputElasticsearch:
-  # Enable/disable the use of the Elasticsearch output.
-  enabled: false
-  # Secret name to be used for the Elasticsearch password. If empty, the secret name defaults to `elasticsearch-es-elastic-user`
-  secretRef: "elasticsearch-es-elastic-user"
-  # The key in the kubernetes secret that contains the Elasticsearch password.
-  secretKey: elastic
+outputElasticSearch:
+  # Enable/disable the use of the ElasticSearch output.
+  enable: false
+  # ElasticSearch addresses, comma-separated node:port pairs.
+  addresses: ""
+  username: elastic
+  # It is highly not recommended to set password directly in helm values, but using a credentials management process.
+  # Password will be set in secret if defined.
+  # password: ""
+  # Create or not the secret for ElasticSearch
+  secretCreate: true
+  # Secret name to be used for the ElasticSearch credentials, `${netobserv.fullname}-es-creds` if undefined
+  # secretName: "es-credentials"
+  # The key in the kubernetes secret that contains the ElasticSearch user.
+  secretKeyUser: username
+  # The key in the kubernetes secret that contains the ElasticSearch password.
+  secretKeyPassword: password
   tls:
-    # Enable/disable TLS connections to Elasticsearch.
-    enabled: false
-    # The name of the config map that contains the CA certificate.
-    caConfigMap: ""
-    # The path to the CA certificate file.
-    caMountPath: ""
+    # Enable/disable TLS connections to ElasticSearch.
+    enable: false
+    skipVerification: false
+    # The name of the config map that contains the CA certificate. If empty, will not be mounted.
+    caConfigMapName: ""
     # The key in the config map that contains the CA certificate.
     caConfigMapKey: "ca.crt"
+    # The path to the CA certificate file.
+    caMountPath: ""
     # The name of the file that contains the CA certificate.
     caFileName: "ca.crt"
   ecs:
     # Enable/disable the use of the Elastic Common Schema (ECS).
-    enabled: false
+    enable: false
 
 # The OpenSearch output can be used to send records to an OpenSearch cluster.
 # https://docs.elastiflow.com/docs/config_ref/common/output_opensearch
 outputOpenSearch:
   # Enable/disable the use of the OpenSearch output.
-  enabled: false
-  # Secret name to be used for the OpenSearch password. If empty, the secret name defaults to `opensearch-es-elastic-user`
-  secretRef: "opensearch-user"
+  enable: false
+  # OpenSearch addresses, comma-separated node:port pairs.
+  addresses: ""
+  username: admin
+  # Password will be set in secret if defined.
+  # It is highly not recommended to set password directly in helm values, but using a credentials management process.
+  # password: ""
+  # Create or not the secret for OpenSearch
+  secretCreate: true
+  # Secret name to be used for the OpenSearch credentials, `${netobserv.fullname}-os-creds` if undefined
+  # secretName: "os-credentials"
+  # The key in the kubernetes secret that contains the OpenSearch user.
+  secretKeyUser: username
   # The key in the kubernetes secret that contains the OpenSearch password.
-  secretKey: opensearch-password
+  secretKeyPassword: password
   tls:
     # Enable/disable TLS connections to OpenSearch.
-    enabled: false
-    # The name of the config map that contains the CA certificate.
-    caConfigMap: ""
-    # The path to the CA certificate file.
-    caMountPath: ""
+    enable: false
+    skipVerification: false
+    # The name of the config map that contains the CA certificate. If empty, will not be mounted.
+    caConfigMapName: ""
     # The key in the config map that contains the CA certificate.
     caConfigMapKey: "ca.crt"
+    # The path to the CA certificate file.
+    caMountPath: ""
     # The name of the file that contains the CA certificate.
     caFileName: "ca.crt"
   ecs:
     # Enable/disable the use of the Elastic Common Schema (ECS).
-    enabled: false
+    enable: false
 
 # The Kafka output can be used to send records to Apache Kafka, Confluent Platform,
 # Confluent Cloud, Redpanda and Amazon Managed Streaming for Apache Kafka (Amazon MSK).
 # https://docs.elastiflow.com/docs/output-kafka
 outputKafka:
   # Enable/disable the use of the Kafka output.
-  enabled: false
+  enable: false
   # A comma-separated list of brokers, IP address and port number, to which the collector is to connect.
   # Example: "192.0.2.11:9092,192.0.2.12:9092,192.0.2.13:9092"
   brokers: ""
   tls:
     # Enable/disable TLS connections to Kafka.
-    enabled: false
-    # The name of the config map that contains the CA certificate.
-    caConfigMap: ""
-    # The path to the CA certificate file.
-    caMountPath: ""
+    enable: false
+    # The name of the config map that contains the CA certificate. If empty, will not be mounted.
+    caConfigMapName: ""
     # The key in the config map that contains the CA certificate.
     caConfigMapKey: "ca.crt"
+    # The path to the CA certificate file.
+    caMountPath: ""
     # The name of the file that contains the CA certificate.
     caFileName: "ca.crt"
 
@@ -95,7 +117,7 @@ license:
   createSecret: false
   # Secret name to be used for the license. If empty, the secret name defaults to `netobserv-license`
   # If no secret with a matching name exists, the value will be set from `licenseKey` instead.
-  secretRef: "netobserv-license"
+  secretName: "netobserv-license"
   # Set account ID
   accountId: ""
   # Set license key, if not set, value from secret will be used.
@@ -111,7 +133,7 @@ maxmind:
   createSecret: false
   # Secret name to be used for the license. If empty, the secret name defaults to `maxmind-license`
   # If no secret with a matching name exists, the value will be set from `licenseKey` instead.
-  secretRef: "maxmind-license"
+  secretName: "maxmind-license"
   # Enabling ASN will look up the autonomous system number and autonomous system
   # organization associated with IPv4 and IPv6 addresses.
   asnEnabled: false
@@ -383,6 +405,20 @@ extraObjects: []
   #       type: Opaque
   #       labels:
   #         app.kubernetes.io/part-of: argocd
+  # # https://cloud.google.com/kubernetes-engine/docs/how-to/ingress-configuration#direct_health
+  # - |
+  #   apiVersion: cloud.google.com/v1
+  #   kind: BackendConfig
+  #   metadata:
+  #     name: '{{ template "opensearch-dashboards.fullname" . }}'
+  #   spec:
+  #     healthCheck:
+  #       checkIntervalSec: 60
+  #       unhealthyThreshold: 2
+  #       healthyThreshold: 3
+  #       port: 5601
+  #       type: HTTP
+  #       requestPath: /app/login
 
 # OpenSearch chart values (installed as a dependency)
 opensearch:
