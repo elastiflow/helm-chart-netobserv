@@ -106,14 +106,18 @@ Create the name of the service account to use
   {{- end -}}
 {{- end -}}
 
-{{/*
-  Define OpenSearch Dashboards dashboards import command
-
-   --form file=@dashboards-1.0.x-codex-light.ndjson
-*/}}
+{{/* Define OpenSearch Dashboards dashboards import command */}}
 {{- define "netobserv.osDashboardsImportCMD" -}}
 {{- $insecure := .Values.outputOpenSearch.dashboards.tls.validate_certs | ternary "-k" "" -}}
 {{- $headers := `-H "osd-xsrf: true" -H "securitytenant: global"` -}}
 {{- $form := "--form file=@/tmp/dashboards.ndjson" -}}
 curl -XPOST {{ $insecure }} {{ $headers }} {{ $form }} -u "${EF_OUTPUT_OPENSEARCH_USERNAME}:${EF_OUTPUT_OPENSEARCH_PASSWORD}" "{{ .Values.outputOpenSearch.dashboards.dashboards_url }}/api/saved_objects/_import?overwrite={{ .Values.outputOpenSearch.dashboards.override }}"
+{{- end -}}
+
+{{/* Define ELasticSearch Dashboards dashboards import command */}}
+{{- define "netobserv.esDashboardsImportCMD" -}}
+{{- $insecure := .Values.outputElasticSearch.dashboards.tls.validate_certs | ternary "-k" "" -}}
+{{- $headers := `-H "kbn-xsrf: true" -H "securitytenant: global"` -}}
+{{- $form := "--form file=@/tmp/dashboards.ndjson" -}}
+curl -XPOST {{ $insecure }} {{ $headers }} {{ $form }} -u "${EF_OUTPUT_ELASTICSEARCH_USERNAME}:${EF_OUTPUT_ELASTICSEARCH_PASSWORD}" "{{ .Values.outputElasticSearch.dashboards.dashboards_url }}/api/saved_objects/_import?overwrite={{ .Values.outputElasticSearch.dashboards.override }}"
 {{- end -}}
