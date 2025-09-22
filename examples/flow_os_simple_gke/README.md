@@ -1,0 +1,51 @@
+# NetObserv Flow with OpenSearch
+
+- [NetObserv Flow with OpenSearch](#netobserv-flow-with-opensearch)
+  - [Overview](#overview)
+  - [Install](#install)
+  - [Access](#access)
+  - [Hints](#hints)
+
+## Overview
+
+This playbook deploys NetObserv Flow with OpenSearch as the data platform in the GCP GKE clusters.  
+Intended for demonstration, testing, or proof-of-concept use only since OpenSearch is deployed in a single node mode.
+
+Notes on the example deployment:
+
+- Namespace used in the example: `elastiflow`
+- GKE internal load balancer is used for the OpenSearch Dashboard ingress
+  Assumed you have access to internal GCP subnets via VPN
+- Spot instances are used
+
+<!-- TODO: use remote chart everywhere in the doc -->
+
+## Install
+
+```sh
+helm repo add opensearch https://opensearch-project.github.io/helm-charts/
+helm dependency build charts/netobserv
+kubectl create namespace elastiflow
+helm upgrade -i -n elastiflow -f examples/flow_os_simple_gke/values.yaml netobserv charts/netobserv
+
+```
+
+## Access
+
+Get OpenSearch Dashboards address
+
+```sh
+kubectl get ingress elastiflow-os-dashboards -o=jsonpath='{.status.loadBalancer.ingress[0].ip}'
+```
+
+## Hints
+
+To render and diff helm templates to K8s manifests simply run
+
+```sh
+rm -rf helm_rendered; 
+helm template -n elastiflow -f examples/flow_os_simple_gke/values.yaml --output-dir helm_rendered netobserv charts/netobserv
+
+# Diff
+kubectl diff -R -f helm_rendered/netobserv/
+```
