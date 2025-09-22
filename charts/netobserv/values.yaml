@@ -277,10 +277,10 @@ ingress:
 resources:
   limits:
     cpu: 2
-    memory: 4096Mi
+    memory: 6144Mi
   requests:
     cpu: 1
-    memory: 2048Mi
+    memory: 4096Mi
 
 startupProbe:
   enabled: true
