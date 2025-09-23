@@ -9,7 +9,7 @@
 ## Overview
 
 This playbook deploys NetObserv Flow with OpenSearch as the data platform in a GCP GKE cluster.  
-Intended for demonstration, testing, or proof-of-concept use only since OpenSearch is deployed in a single node mode.
+This example is intended only for demonstration, testing, or proof-of-concept use, since OpenSearch is deployed in a single-node mode.
 
 Notes on the example deployment:
 
