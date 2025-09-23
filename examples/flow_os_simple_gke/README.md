@@ -13,10 +13,11 @@ Intended for demonstration, testing, or proof-of-concept use only since OpenSear
 
 Notes on the example deployment:
 
+- GKE [node auto-provisioning](https://cloud.google.com/kubernetes-engine/docs/how-to/node-auto-provisioning) must be enabled.
 - Namespace used in the example: `elastiflow`
 - GKE internal load balancer is used for the OpenSearch Dashboard ingress
   Assumed you have access to internal GCP subnets via VPN
-- Spot instances are used
+- Spot instances are used, please tweak affinity and tolerations in the `values.yaml` if needed.
 
 <!-- TODO: use remote chart everywhere in the doc -->
 
@@ -26,8 +27,7 @@ Notes on the example deployment:
 helm repo add opensearch https://opensearch-project.github.io/helm-charts/
 helm dependency build charts/netobserv
 kubectl create namespace elastiflow
-helm upgrade -i -n elastiflow -f examples/flow_os_simple_gke/values.yaml netobserv charts/netobserv
-
+helm upgrade -i --wait --timeout 15m -n elastiflow -f examples/flow_os_simple_gke/values.yaml netobserv charts/netobserv
 ```
 
 ## Access
@@ -38,14 +38,15 @@ Get OpenSearch Dashboards address
 kubectl get ingress elastiflow-os-dashboards -o=jsonpath='{.status.loadBalancer.ingress[0].ip}'
 ```
 
+Now you can navigate to the obtained IP in the browser (assumed you have access to the private network), using `admin`/`Elast1flow!` user/pass, global tenant, and explore the data.
+
 ## Hints
 
 To render and diff helm templates to K8s manifests simply run
 
 ```sh
-rm -rf helm_rendered; 
-helm template -n elastiflow -f examples/flow_os_simple_gke/values.yaml --output-dir helm_rendered netobserv charts/netobserv
+rm -rf helm_rendered/netobserv; helm template -n elastiflow -f examples/flow_os_simple_gke/values.yaml --output-dir helm_rendered netobserv charts/netobserv
 
-# Diff
+# Diff with existing K8s resources
 kubectl diff -R -f helm_rendered/netobserv/
 ```
