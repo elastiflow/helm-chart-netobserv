@@ -42,7 +42,7 @@ Now you can navigate to the obtained IP in the browser (assumed you have access 
 
 ## Hints
 
-To render and diff helm templates to K8s manifests simply run
+To render and diff Helm templates to Kubernetes manifests, run:
 
 ```sh
 rm -rf helm_rendered/netobserv; helm template -n elastiflow -f examples/flow_os_simple_gke/values.yaml --output-dir helm_rendered netobserv charts/netobserv
