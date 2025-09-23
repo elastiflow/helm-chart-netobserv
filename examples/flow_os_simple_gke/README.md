@@ -23,10 +23,12 @@ Notes on the example deployment:
 ## Install
 
 ```sh
+helm repo add elastiflow https://elastiflow.github.io/helm-chart-netobserv/
 helm repo add opensearch https://opensearch-project.github.io/helm-charts/
-helm dependency build charts/netobserv
+helm repo update
+helm dependency build elastiflow/netobserv
 kubectl create namespace elastiflow
-helm upgrade -i --wait --timeout 15m -n elastiflow -f examples/flow_os_simple_gke/values.yaml netobserv charts/netobserv
+helm upgrade -i --wait --timeout 15m -n elastiflow -f examples/flow_os_simple_gke/values.yaml netobserv elastiflow/netobserv
 ```
 
 ## Access
@@ -44,7 +46,7 @@ Now you can navigate to the obtained IP in your browser (assuming you have acces
 To render and diff Helm templates to Kubernetes manifests, run:
 
 ```sh
-rm -rf helm_rendered/netobserv; helm template -n elastiflow -f examples/flow_os_simple_gke/values.yaml --output-dir helm_rendered netobserv charts/netobserv
+rm -rf helm_rendered/netobserv; helm template -n elastiflow -f examples/flow_os_simple_gke/values.yaml --output-dir helm_rendered netobserv elastiflow/netobserv
 
 # Diff with existing K8s resources
 kubectl diff -R -f helm_rendered/netobserv/
