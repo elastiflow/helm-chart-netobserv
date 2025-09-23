@@ -1,8 +1,13 @@
 # netObserv Helm Chart
 
-- [Overview](#overview)
-- [Installation](#installation)
-- [Configuration](#configuration)
+- [netObserv Helm Chart](#netobserv-helm-chart)
+  - [Overview](#overview)
+  - [Installation](#installation)
+  - [Configuration](#configuration)
+  - [Upgrade](#upgrade)
+    - [`netobserv-0.4.14` -\> `netobserv-0.5.x` notes](#netobserv-0414---netobserv-05x-notes)
+    - [License Setup](#license-setup)
+  - [License](#license)
 
 ## Overview
 
@@ -28,6 +33,18 @@ helm install netobserv elastiflow/netobserv
 ```
 
 ## Configuration
+
+## Upgrade
+
+### `netobserv-0.4.14` -> `netobserv-0.5.x` notes
+
+Changed values attribute names:
+
+- `secretRef` (in `outputElasticsearch`, `outputOpenSearch`) renamed to `secretName`
+- `secretKey` (in `outputElasticsearch`, `outputOpenSearch`) renamed to `secretKeyPassword`
+- `caConfigMap` (in `outputElasticsearch.tls`, `outputOpenSearch.tls`, `outputKafka.tls`) renamed to `caConfigMapName`
+- `enabled` (in `outputElasticsearch`, `outputElasticsearch.tls`, `outputElasticsearch.ecs`, `outputOpenSearch`, `outputOpenSearch.tls`, `outputOpenSearch.ecs`, `outputKafka`, `outputKafka.tls`) renamed to `enable` in order to be consistent with actual collector env. vars. names.
+- `outputElasticsearch` renamed to `outputElasticSearch`
 
 ### License Setup
 
