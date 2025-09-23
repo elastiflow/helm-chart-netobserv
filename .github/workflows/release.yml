@@ -85,6 +85,9 @@ jobs:
           git config user.email "$GITHUB_ACTOR@users.noreply.github.com"
       - name: Install Helm
         uses: azure/setup-helm@v4
+      - name: Install Helm dependencies
+        run: |
+          helm repo add opensearch https://opensearch-project.github.io/helm-charts/
       - name: Run chart-releaser
         uses: helm/chart-releaser-action@v1.7.0
         env:
