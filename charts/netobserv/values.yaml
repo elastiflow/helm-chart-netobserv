@@ -276,10 +276,10 @@ ingress:
 
 resources:
   limits:
-    cpu: 2
+    cpu: "2000m"
     memory: 6144Mi
   requests:
-    cpu: 1
+    cpu: "1000m"
     memory: 4096Mi
 
 startupProbe:
@@ -328,6 +328,11 @@ autoscaling:
   #       - type: Percent
   #         value: 10
   #         periodSeconds: 15
+
+pdb:
+  minAvailable: 10%
+  # mutually exclusive setting with "minAvailable"
+  # maxUnavailable: 10%
 
 tolerations: []
 affinity: {}

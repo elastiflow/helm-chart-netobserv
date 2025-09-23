@@ -12,7 +12,7 @@ metadata:
     helm.sh/hook-delete-policy: before-hook-creation
 spec:
   parallelism: 1
-  activeDeadlineSeconds: 600
+  activeDeadlineSeconds: 900
   backoffLimit: 2
   ttlSecondsAfterFinished: 7200
   completions: 1
@@ -32,12 +32,14 @@ spec:
           imagePullPolicy: "IfNotPresent"
           command:
             - "ash"
+            - -o
+            - pipefail
             - "-c"
           args:
             - |
               curl -f {{ .Values.outputElasticSearch.dashboards.url }} > /tmp/dashboards.ndjson
-              for i in {1..60}; do
-                {{ include "netobserv.esDashboardsImportCMD" . }} && break || sleep 10
+              for i in $(seq 1 90); do
+                ({{ include "netobserv.esDashboardsImportCMD" . }} && echo "Success") && break || (echo "Failure, sleeping 10s" && sleep 10)
               done
           env:
             - name: EF_OUTPUT_ELASTICSEARCH_USERNAME
@@ -51,7 +53,7 @@ spec:
                   name: {{ include "netobserv.elasticSearchCredentialsSecretName" . }}
                   key: {{ .Values.outputElasticSearch.secretKeyPassword }}
           securityContext:
-            {{- toYaml $.Values.securityContext | nindent 16 }}
+            {{- toYaml $.Values.securityContext | nindent 8 }}
           resources:
             requests:
               cpu: "200m"
@@ -102,7 +104,7 @@ metadata:
     helm.sh/hook-delete-policy: before-hook-creation
 spec:
   parallelism: 1
-  activeDeadlineSeconds: 600
+  activeDeadlineSeconds: 900
   backoffLimit: 2
   ttlSecondsAfterFinished: 7200
   completions: 1
@@ -113,7 +115,7 @@ spec:
     spec:
       serviceAccountName: {{ include "netobserv.serviceAccountName" . }}
       securityContext:
-        {{- toYaml .Values.podSecurityContext | nindent 16 }}
+        {{- toYaml .Values.podSecurityContext | nindent 8 }}
       restartPolicy: Never
       terminationGracePeriodSeconds: 30
       containers:
@@ -122,12 +124,14 @@ spec:
           imagePullPolicy: "IfNotPresent"
           command:
             - "ash"
+            - -o
+            - pipefail
             - "-c"
           args:
             - |
               curl -f {{ .Values.outputOpenSearch.dashboards.url }} > /tmp/dashboards.ndjson
-              for i in {1..60}; do
-                {{ include "netobserv.osDashboardsImportCMD" . }} && break || sleep 10
+              for i in $(seq 1 90); do
+                ({{ include "netobserv.osDashboardsImportCMD" . }} && echo "Success") && break || (echo "Failure, sleeping 10s" && sleep 10)
               done
           env:
             - name: EF_OUTPUT_OPENSEARCH_USERNAME
