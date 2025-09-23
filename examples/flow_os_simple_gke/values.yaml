@@ -118,7 +118,7 @@ opensearch:
 
   extraEnvs:
   - name: OPENSEARCH_INITIAL_ADMIN_PASSWORD
-    value: Elast1flow! # Unsecure
+    value: Elast1flow! # Insecure
 
   tolerations:
     - key: k8s.elastiflow.io/role
