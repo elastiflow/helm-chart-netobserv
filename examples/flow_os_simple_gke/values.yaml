@@ -205,7 +205,7 @@ opensearch-dashboards:
           port: 5601
           type: HTTP
           requestPath: /app/login
-    # Adding ingress as extraObjects due to lack of the `defaultBackend` in the original chart
+    # Adding ingress as extraObjects due to the lack of the `defaultBackend` in the original OpenSearch chart
     - |
       apiVersion: networking.k8s.io/v1
       kind: Ingress
