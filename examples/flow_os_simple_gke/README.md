@@ -32,7 +32,7 @@ helm upgrade -i --wait --timeout 15m -n elastiflow -f examples/flow_os_simple_gk
 
 ## Access
 
-Get OpenSearch Dashboards address
+First, get the OpenSearch Dashboards address:
 
 ```sh
 kubectl get ingress elastiflow-os-dashboards -o=jsonpath='{.status.loadBalancer.ingress[0].ip}'
