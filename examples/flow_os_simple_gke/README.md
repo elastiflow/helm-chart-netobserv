@@ -38,7 +38,7 @@ First, get the OpenSearch Dashboards address:
 kubectl get ingress elastiflow-os-dashboards -o=jsonpath='{.status.loadBalancer.ingress[0].ip}'
 ```
 
-Now you can navigate to the obtained IP in the browser (assumed you have access to the private network), using `admin`/`Elast1flow!` user/pass, global tenant, and explore the data.
+Now you can navigate to the obtained IP in your browser (assuming you have access to the private network), using `admin`/`Elast1flow!` as the user/password. Select "global tenant", and explore the data.
 
 ## Hints
 
