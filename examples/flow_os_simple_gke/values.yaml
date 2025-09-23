@@ -86,7 +86,7 @@ service:
 outputOpenSearch:
   enable: true
   addresses: opensearch-cluster-master.elastiflow.svc.gke-main-a.us-east1:9200
-  password: Elast1flow! # Unsecure
+  password: Elast1flow! # Insecure
   tls:
     enable: true
     skipVerification: true
