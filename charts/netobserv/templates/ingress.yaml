@@ -36,6 +36,15 @@ spec:
       secretName: {{ .secretName }}
     {{- end }}
   {{- end }}
+  {{- if .Values.ingress.defaultBackend }}
+  defaultBackend:
+    service:
+      name: {{ include "netobserv.fullname" . }}
+      {{- with .Values.ingress.defaultBackend.service.port }}
+      port:
+      {{- toYaml . | nindent 8 }}
+      {{- end }}
+  {{- end }}
   rules:
     {{- range .Values.ingress.hosts }}
     - host: {{ .host | quote }}

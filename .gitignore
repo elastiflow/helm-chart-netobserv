@@ -8,3 +8,4 @@
 # Misc
 tmp.*
 charts/netobserv/charts/**
+helm_rendered

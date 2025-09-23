@@ -1,0 +1,183 @@
+{{- if and .Values.outputElasticSearch.dashboards.provision }}
+---
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: {{ include "netobserv.fullname" . }}-es-import-dashboards
+  labels:
+    {{- include "netobserv.labels" . | nindent 4 }}
+  annotations:
+    helm.sh/hook: post-install,post-upgrade
+    helm.sh/hook-weight: "-5"
+    helm.sh/hook-delete-policy: before-hook-creation
+spec:
+  parallelism: 1
+  activeDeadlineSeconds: 900
+  backoffLimit: 2
+  ttlSecondsAfterFinished: 7200
+  completions: 1
+  template:
+    metadata:
+      labels:
+        {{- include "netobserv.labels" . | nindent 8 }}
+    spec:
+      serviceAccountName: {{ include "netobserv.serviceAccountName" . }}
+      securityContext:
+        {{- toYaml .Values.podSecurityContext | nindent 16 }}
+      restartPolicy: Never
+      terminationGracePeriodSeconds: 30
+      containers:
+        - name: {{ .Chart.Name }}-es-import-dashboards
+          image: "alpine/curl:8.14.1"
+          imagePullPolicy: "IfNotPresent"
+          command:
+            - "ash"
+            - -o
+            - pipefail
+            - "-c"
+          args:
+            - |
+              curl -f {{ .Values.outputElasticSearch.dashboards.url }} > /tmp/dashboards.ndjson
+              for i in $(seq 1 90); do
+                ({{ include "netobserv.esDashboardsImportCMD" . }} && echo "Success") && break || (echo "Failure, sleeping 10s" && sleep 10)
+              done
+          env:
+            - name: EF_OUTPUT_ELASTICSEARCH_USERNAME
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "netobserv.elasticSearchCredentialsSecretName" . }}
+                  key: {{ .Values.outputElasticSearch.secretKeyUser }}
+            - name: EF_OUTPUT_ELASTICSEARCH_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "netobserv.elasticSearchCredentialsSecretName" . }}
+                  key: {{ .Values.outputElasticSearch.secretKeyPassword }}
+          securityContext:
+            {{- toYaml $.Values.securityContext | nindent 8 }}
+          resources:
+            requests:
+              cpu: "200m"
+              memory: "256Mi"
+            limits:
+              cpu: "200m"
+              memory: "256Mi"
+          {{- if eq (include "volumeMountsEnabled" .) "true" }}
+          volumeMounts:
+            {{- if and .Values.outputElasticSearch.tls.enable (not (eq .Values.outputElasticSearch.tls.caConfigMapName "")) }}
+            - name: {{ .Values.outputElasticSearch.tls.caConfigMapName }}
+              mountPath: {{ .Values.outputElasticSearch.tls.caMountPath }}
+              readOnly: true
+            {{- end }}
+          {{- end }}
+      {{- if eq (include "volumesEnabled" .) "true" }}
+      volumes:
+        {{- if and .Values.outputElasticSearch.tls.enable (not (eq .Values.outputElasticSearch.tls.caConfigMapName "")) }}
+        - name: {{ .Values.outputElasticSearch.tls.caConfigMapName }}
+          configMap:
+            name: {{ .Values.outputElasticSearch.tls.caConfigMapName }}
+            items:
+              - key: {{ .Values.outputElasticSearch.tls.caConfigMapKey }}
+                path: {{ .Values.outputElasticSearch.tls.caFileName }}
+        {{- end }}
+      {{- end }}
+      {{- with .Values.affinity }}
+      affinity:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.tolerations }}
+      tolerations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+{{- end }}
+
+{{- if and .Values.outputOpenSearch.dashboards.provision }}
+---
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: {{ include "netobserv.fullname" . }}-os-import-dashboards
+  labels:
+    {{- include "netobserv.labels" . | nindent 4 }}
+  annotations:
+    helm.sh/hook: post-install,post-upgrade
+    helm.sh/hook-weight: "-5"
+    helm.sh/hook-delete-policy: before-hook-creation
+spec:
+  parallelism: 1
+  activeDeadlineSeconds: 900
+  backoffLimit: 2
+  ttlSecondsAfterFinished: 7200
+  completions: 1
+  template:
+    metadata:
+      labels:
+        {{- include "netobserv.labels" . | nindent 8 }}
+    spec:
+      serviceAccountName: {{ include "netobserv.serviceAccountName" . }}
+      securityContext:
+        {{- toYaml .Values.podSecurityContext | nindent 8 }}
+      restartPolicy: Never
+      terminationGracePeriodSeconds: 30
+      containers:
+        - name: {{ .Chart.Name }}-os-import-dashboards
+          image: "alpine/curl:8.14.1"
+          imagePullPolicy: "IfNotPresent"
+          command:
+            - "ash"
+            - -o
+            - pipefail
+            - "-c"
+          args:
+            - |
+              curl -f {{ .Values.outputOpenSearch.dashboards.url }} > /tmp/dashboards.ndjson
+              for i in $(seq 1 90); do
+                ({{ include "netobserv.osDashboardsImportCMD" . }} && echo "Success") && break || (echo "Failure, sleeping 10s" && sleep 10)
+              done
+          env:
+            - name: EF_OUTPUT_OPENSEARCH_USERNAME
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "netobserv.openSearchCredentialsSecretName" . }}
+                  key: {{ .Values.outputOpenSearch.secretKeyUser }}
+            - name: EF_OUTPUT_OPENSEARCH_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "netobserv.openSearchCredentialsSecretName" . }}
+                  key: {{ .Values.outputOpenSearch.secretKeyPassword }}
+          securityContext:
+            {{- toYaml $.Values.securityContext | nindent 16 }}
+          resources:
+            requests:
+              cpu: "200m"
+              memory: "256Mi"
+            limits:
+              cpu: "200m"
+              memory: "256Mi"
+          {{- if eq (include "volumeMountsEnabled" .) "true" }}
+          volumeMounts:
+            {{- if and .Values.outputOpenSearch.tls.enable (not (eq .Values.outputOpenSearch.tls.caConfigMapName "")) }}
+            - name: {{ .Values.outputOpenSearch.tls.caConfigMapName }}
+              mountPath: {{ .Values.outputOpenSearch.tls.caMountPath }}
+              readOnly: true
+            {{- end }}
+          {{- end }}
+      {{- if eq (include "volumesEnabled" .) "true" }}
+      volumes:
+        {{- if and .Values.outputOpenSearch.tls.enable (not (eq .Values.outputOpenSearch.tls.caConfigMapName "")) }}
+        - name: {{ .Values.outputOpenSearch.tls.caConfigMapName }}
+          configMap:
+            name: {{ .Values.outputOpenSearch.tls.caConfigMapName }}
+            items:
+              - key: {{ .Values.outputOpenSearch.tls.caConfigMapKey }}
+                path: {{ .Values.outputOpenSearch.tls.caFileName }}
+        {{- end }}
+      {{- end }}
+      {{- with .Values.affinity }}
+      affinity:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.tolerations }}
+      tolerations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+{{- end }}

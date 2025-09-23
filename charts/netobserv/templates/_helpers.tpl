@@ -64,30 +64,60 @@ Create the name of the service account to use
 {{- end }}
 {{- end }}
 
-{{/*
-Determine if volumes need to be created
-*/}}
+{{/* Determine if volumes need to be created */}}
 {{- define "volumesEnabled" -}}
   {{- or
     .Values.maxmind.asnEnabled
     .Values.maxmind.geoipEnabled
-    .Values.outputKafka.tls.enabled
-    .Values.outputElasticsearch.tls.enabled
-    .Values.outputOpenSearch.tls.enabled
+    (and .Values.outputKafka.tls.enable (not (eq .Values.outputKafka.tls.caConfigMapName "")))
+    (and .Values.outputElasticSearch.tls.enable (not (eq .Values.outputElasticSearch.tls.caConfigMapName "")))
+    (and .Values.outputOpenSearch.tls.enable (not (eq .Values.outputOpenSearch.tls.caConfigMapName "")))
     (not (empty .Values.extraVolumes))
   -}}
 {{- end -}}
 
-{{/*
-Determine if volumeMounts need to be created
-*/}}
+{{/* Determine if volumeMounts need to be created */}}
 {{- define "volumeMountsEnabled" -}}
   {{- or
     .Values.maxmind.asnEnabled
     .Values.maxmind.geoipEnabled
-    .Values.outputKafka.tls.enabled
-    .Values.outputElasticsearch.tls.enabled
-    .Values.outputOpenSearch.tls.enabled
+    (and .Values.outputKafka.tls.enable (not (eq .Values.outputKafka.tls.caConfigMapName "")))
+    (and .Values.outputElasticSearch.tls.enable (not (eq .Values.outputElasticSearch.tls.caConfigMapName "")))
+    (and .Values.outputOpenSearch.tls.enable (not (eq .Values.outputOpenSearch.tls.caConfigMapName "")))
     (not (empty .Values.extraVolumeMounts))
   -}}
+{{- end -}}
+
+{{/* Define ElasticSearch credentials secret name */}}
+{{- define "netobserv.elasticSearchCredentialsSecretName" -}}
+  {{- if (.Values.outputElasticSearch.secretName | empty) -}}
+  {{ include "netobserv.fullname" . }}-es-creds
+  {{- else -}}
+  {{ .Values.outputElasticSearch.secretName }}
+  {{- end -}}
+{{- end -}}
+
+{{/* Define OpenSearch credentials secret name */}}
+{{- define "netobserv.openSearchCredentialsSecretName" -}}
+  {{- if (.Values.outputOpenSearch.secretName | empty) -}}
+  {{ include "netobserv.fullname" . }}-os-creds
+  {{- else -}}
+  {{ .Values.outputOpenSearch.secretName }}
+  {{- end -}}
+{{- end -}}
+
+{{/* Define OpenSearch Dashboards dashboards import command */}}
+{{- define "netobserv.osDashboardsImportCMD" -}}
+{{- $insecure := .Values.outputOpenSearch.dashboards.tls.validate_certs | ternary "-k" "" -}}
+{{- $headers := `-H "osd-xsrf: true" -H "securitytenant: global"` -}}
+{{- $form := "--form file=@/tmp/dashboards.ndjson" -}}
+curl -XPOST -f {{ $insecure }} {{ $headers }} {{ $form }} -u "${EF_OUTPUT_OPENSEARCH_USERNAME}:${EF_OUTPUT_OPENSEARCH_PASSWORD}" "{{ .Values.outputOpenSearch.dashboards.dashboards_url }}/api/saved_objects/_import?overwrite={{ .Values.outputOpenSearch.dashboards.override }}"
+{{- end -}}
+
+{{/* Define ELasticSearch Dashboards dashboards import command */}}
+{{- define "netobserv.esDashboardsImportCMD" -}}
+{{- $insecure := .Values.outputElasticSearch.dashboards.tls.validate_certs | ternary "-k" "" -}}
+{{- $headers := `-H "kbn-xsrf: true" -H "securitytenant: global"` -}}
+{{- $form := "--form file=@/tmp/dashboards.ndjson" -}}
+curl -XPOST -f {{ $insecure }} {{ $headers }} {{ $form }} -u "${EF_OUTPUT_ELASTICSEARCH_USERNAME}:${EF_OUTPUT_ELASTICSEARCH_PASSWORD}" "{{ .Values.outputElasticSearch.dashboards.dashboards_url }}/api/saved_objects/_import?overwrite={{ .Values.outputElasticSearch.dashboards.override }}"
 {{- end -}}

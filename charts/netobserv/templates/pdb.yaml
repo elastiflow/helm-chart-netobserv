@@ -1,0 +1,13 @@
+apiVersion: policy/v1
+kind: PodDisruptionBudget
+metadata:
+  name: {{ include "netobserv.fullname" . }}
+  labels:
+    {{- include "netobserv.labels" . | nindent 4 }}
+spec:
+  {{- with .Values.pdb }}
+  {{- toYaml . | nindent 2 }}
+  {{- end }}
+  selector:
+    matchLabels:
+      {{- include "netobserv.selectorLabels" . | nindent 6 }}
