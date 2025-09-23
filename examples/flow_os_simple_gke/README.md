@@ -15,8 +15,7 @@ Notes on the example deployment:
 
 - GKE [node auto-provisioning](https://cloud.google.com/kubernetes-engine/docs/how-to/node-auto-provisioning) must be enabled.
 - Namespace used in the example: `elastiflow`
-- GKE internal load balancer is used for the OpenSearch Dashboard ingress
-  Assumed you have access to internal GCP subnets via VPN
+- A GKE internal load balancer is used for the OpenSearch Dashboard ingress. This example also assumes you can access internal GCP subnets via a VPN.
 - Spot instances are used, please tweak affinity and tolerations in the `values.yaml` if needed.
 
 <!-- TODO: use remote chart everywhere in the doc -->
