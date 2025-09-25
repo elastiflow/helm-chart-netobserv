@@ -223,7 +223,7 @@ opensearch-dashboards:
           service:
             name: '{{ template "opensearch-dashboards.fullname" . }}'
             port:
-              number: 5601
+              number: {{ .Values.service.port }}
         rules:
           - host: "chart-example.local"
             http:
@@ -234,4 +234,4 @@ opensearch-dashboards:
                     service:
                       name: '{{ template "opensearch-dashboards.fullname" . }}'
                       port:
-                        number: 5601
+                        number: {{ .Values.service.port }}

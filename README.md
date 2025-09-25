@@ -51,7 +51,7 @@ Hint, use `kubectl diff` before upgrade to spot potential issues.
 ```sh
 helm repo update
 rm -rf helm_rendered/netobserv
-helm template -n elastiflow -f examples/flow_os_simple_gke/values.yaml --output-dir helm_rendered netobserv charts/netobserv --version netobserv-0.5.0
+helm template -n elastiflow -f examples/flow_os_simple_gke/values.yaml --output-dir helm_rendered netobserv elastiflow/netobserv --version netobserv-0.5.0
 kubectl diff -R -f helm_rendered/netobserv/
 ```
 
