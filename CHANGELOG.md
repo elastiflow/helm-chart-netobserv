@@ -1,3 +1,10 @@
+## [0.6.0](https://github.com/elastiflow/helm-chart-netobserv/compare/netobserv-0.5.0...netobserv-0.6.0) (2025-09-26)
+
+### Features
+
+* bump NetObserv Flow version to 7.16.0 ([#75](https://github.com/elastiflow/helm-chart-netobserv/issues/75)) ([4577fc6](https://github.com/elastiflow/helm-chart-netobserv/commit/4577fc6771484867a4fedb4aac79a77b7d459585))
+
+
 ## [0.5.0](https://github.com/elastiflow/helm-chart-netobserv/compare/netobserv-0.4.14...netobserv-0.5.0) (2025-09-23)
 
 ### Features
@@ -9,6 +16,3 @@
 * **ci:** Clean changelog ([#70](https://github.com/elastiflow/helm-chart-netobserv/issues/70)) ([36b4d68](https://github.com/elastiflow/helm-chart-netobserv/commit/36b4d68ac5657162d8c496ce4b1593efacfce5d6))
 * **ci:** Release should be blocking ([#71](https://github.com/elastiflow/helm-chart-netobserv/issues/71)) ([744416e](https://github.com/elastiflow/helm-chart-netobserv/commit/744416ead45e77df6cad0890d4ef8f45e797e09b))
 * **release:** Add missing dependency fetch step ([#72](https://github.com/elastiflow/helm-chart-netobserv/issues/72)) ([1a6056f](https://github.com/elastiflow/helm-chart-netobserv/commit/1a6056fde57d1fb5e32a2a7666cad411eeabe340))
-
-
-

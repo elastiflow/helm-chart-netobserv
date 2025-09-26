@@ -2,7 +2,7 @@ apiVersion: v2
 name: netobserv
 description: ElastiFlow NetObserv
 type: application
-version: 0.5.0
+version: 0.6.0
 appVersion: 7.16.0
 icon: https://artifacthub.io/image/a7c44004-9982-4ba1-a4c9-c626340d3d38@2x
 sources:
