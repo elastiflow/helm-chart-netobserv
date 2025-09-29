@@ -1,0 +1,66 @@
+
+{{- if .Values.gateway.enabled -}}
+---
+apiVersion: {{ .Values.gateway.apiVersion }}
+kind: Gateway
+metadata:
+  name: {{ include "netobserv.fullname" . }}
+  labels:
+    {{- include "netobserv.labels" . | nindent 4 }}
+  {{- with .Values.gateway.annotations }}
+  annotations:
+    {{- toYaml . | nindent 4 }}
+  {{- end }}
+spec:
+  gatewayClassName: {{ .Values.gateway.className }}
+  {{- with .Values.gateway.listeners }}
+  listeners:
+    {{- toYaml . | nindent 4 }}
+  {{- end }}
+  {{- with .Values.gateway.addresses }}
+  addresses:
+    {{- toYaml . | nindent 4 }}
+  {{- end }}
+
+{{- range $route := .Values.gateway.httpRoutes }}
+---
+apiVersion: {{ $.Values.gateway.apiVersion }}
+kind: HTTPRoute
+metadata:
+  name: {{ include "netobserv.fullname" $ }}-{{ $route.name }}
+  labels:
+    {{- include "netobserv.labels" $ | nindent 4 }}
+spec:
+  parentRefs:
+    - name: {{ include "netobserv.fullname" $ }}
+  {{- range ($route.hostnames | default $.Values.gateway.defaultHostNames) }}
+  hostnames:
+    - {{ . | quote }}
+  {{- end }}
+  {{- with $route.rules }}
+  rules:
+    {{- tpl (toYaml .) $ | nindent 4 -}}
+  {{- end }}
+{{- end }}
+
+{{- range $route := .Values.gateway.grpcRoutes }}
+---
+apiVersion: gateway.networking.k8s.io/v1beta1
+kind: GRPCRoute
+metadata:
+  name: {{ include "netobserv.fullname" $ }}-{{ $route.name }}
+  labels:
+    {{- include "netobserv.labels" $ | nindent 4 }}
+spec:
+  parentRefs:
+    - name: {{ include "netobserv.fullname" $ }}
+  {{- range ($route.hostnames | default $.Values.gateway.defaultHostNames) }}
+  hostnames:
+    - {{ . | quote }}
+  {{- end }}
+  {{- with $route.rules }}
+  rules:
+    {{- tpl (toYaml .) $ | nindent 4 -}}
+  {{- end }}
+{{- end }}
+{{- end }}

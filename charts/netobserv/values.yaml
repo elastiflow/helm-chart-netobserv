@@ -237,22 +237,22 @@ service:
   #   - "0.0.0.0/0"
 
   ports:
-    - port: 8080
+    - name: api
+      port: 8080
       targetPort: 8080
       protocol: TCP
-      name: api
-    - port: 9995
+    - name: netflow
+      port: 9995
       targetPort: 9995
       protocol: UDP
-      name: netflow
-    # - port: 4739
+    # - name: ipfix
+    #   port: 4739
     #   targetPort: 4739
     #   protocol: UDP
-    #   name: ipfix
-    # - port: 6343
+    # - name: sflow
+    #   port: 6343
     #   targetPort: 6343
     #   protocol: UDP
-    #   name: sflow
 
 ingress:
   enabled: false
@@ -260,19 +260,67 @@ ingress:
   annotations: {}
     # kubernetes.io/ingress.class: nginx
     # kubernetes.io/tls-acme: "true"
-  # defaultBackend:
-  #   service:
-  #     port:
-  #       name: api
-  hosts:
-    - host: chart-example.local
-      paths:
-        - path: /
-          pathType: ImplementationSpecific
+  defaultBackend:
+    service:
+      port:
+        name: api
+  # Use `hosts` to customize routing.
+  # hosts:
+  #   - # host: chart-example.local # Uncomment if you have a DNS name for the ingress (Load Balancer)
+  #     paths:
+  #       - path: /api/*
+  #         pathType: ImplementationSpecific
+  #         backend:
+  #           service:
+  #             port:
+  #               name: api
   tls: []
   #  - secretName: chart-example-tls
   #    hosts:
   #      - chart-example.local
+
+gateway:
+  enabled: false
+  apiVersion: gateway.networking.k8s.io/v1
+  className: ""
+  annotations: {}
+  listeners:
+    - name: http
+      port: 80
+      protocol: HTTP
+      allowedRoutes:
+        kinds:
+          - kind: HTTPRoute
+  # Optionally set the Gateway address
+  # addresses:
+  #   - type: NamedAddress
+  #     value: MyFamousIP
+  # Default hostnames to be used in all HTTPRoute resources, can be overridden by individual httpRoutes[].hostnames
+  # defaultHostNames: [chart-example.local]
+  # HTTPRoutes to be provisioned with the Gateway
+  httpRoutes:
+    - name: main
+      # hostnames: ["foo.bar.com"] # Overrides the gateway.defaultHostNames
+      rules:
+        - matches:
+            - path:
+                value: /
+          backendRefs:
+            - name: '{{ include "netobserv.fullname" $ }}'
+              port: 8080
+  # GRPCRoutes to be provisioned with the Gateway
+  # grpcRoutes:
+  #   - name: api
+  #     # hostnames: ["foo.bar.com"] # Overrides the gateway.defaultHostNames
+  #     rules:
+  #       - matches:
+  #         - type: Exact
+  #           method:
+  #           service: "foo"
+  #           headers:
+  #         backendRefs:
+  #           - name: '{{ include "netobserv.fullname" $ }}'
+  #             port: 8080
 
 resources:
   limits:
@@ -280,7 +328,7 @@ resources:
     memory: 6144Mi
   requests:
     cpu: "1000m"
-    memory: 4096Mi
+    memory: 6144Mi
 
 startupProbe:
   enabled: true
