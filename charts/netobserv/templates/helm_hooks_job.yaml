@@ -1,3 +1,4 @@
+{{- $labels := omit (include "netobserv.labels" . | fromYaml) "app.kubernetes.io/instance" -}}
 {{- if and .Values.outputElasticSearch.dashboards.provision }}
 ---
 apiVersion: batch/v1
@@ -5,7 +6,7 @@ kind: Job
 metadata:
   name: {{ include "netobserv.fullname" . }}-es-import-dashboards
   labels:
-    {{- include "netobserv.labels" . | nindent 4 }}
+    {{- toYaml $labels | nindent 4 }}
   annotations:
     helm.sh/hook: post-install,post-upgrade
     helm.sh/hook-weight: "-5"
@@ -19,7 +20,7 @@ spec:
   template:
     metadata:
       labels:
-        {{- include "netobserv.labels" . | nindent 8 }}
+        {{- toYaml $labels | nindent 8 }}
     spec:
       serviceAccountName: {{ include "netobserv.serviceAccountName" . }}
       securityContext:
@@ -97,7 +98,7 @@ kind: Job
 metadata:
   name: {{ include "netobserv.fullname" . }}-os-import-dashboards
   labels:
-    {{- include "netobserv.labels" . | nindent 4 }}
+    {{- toYaml $labels | nindent 4 }}
   annotations:
     helm.sh/hook: post-install,post-upgrade
     helm.sh/hook-weight: "-5"
@@ -111,7 +112,7 @@ spec:
   template:
     metadata:
       labels:
-        {{- include "netobserv.labels" . | nindent 8 }}
+        {{- toYaml $labels | nindent 8 }}
     spec:
       serviceAccountName: {{ include "netobserv.serviceAccountName" . }}
       securityContext:
