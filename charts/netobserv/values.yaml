@@ -206,11 +206,11 @@ securityContext: {}
 # The netobserv container's ports to expose.
 ports:
   - name: api
-    protocol: TCP
     containerPort: 8080
+    protocol: TCP
   - name: netflow
-    protocol: UDP
     containerPort: 9995
+    protocol: UDP
   # - name: ipfix
   #   containerPort: 4739
   #   protocol: UDP
@@ -238,21 +238,21 @@ service:
 
   ports:
     - name: api
-      protocol: TCP
       port: 8080
       targetPort: 8080
+      protocol: TCP
     - name: netflow
-      protocol: UDP
       port: 9995
       targetPort: 9995
+      protocol: UDP
     # - name: ipfix
-    #   protocol: UDP
     #   port: 4739
     #   targetPort: 4739
-    # - name: sflow
     #   protocol: UDP
+    # - name: sflow
     #   port: 6343
     #   targetPort: 6343
+    #   protocol: UDP
 
 ingress:
   enabled: false
