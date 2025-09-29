@@ -1,3 +1,10 @@
+## [0.7.0](https://github.com/elastiflow/helm-chart-netobserv/compare/netobserv-0.6.0...netobserv-0.7.0) (2025-09-29)
+
+### Features
+
+* Add Gateway ([#77](https://github.com/elastiflow/helm-chart-netobserv/issues/77)) ([5810526](https://github.com/elastiflow/helm-chart-netobserv/commit/5810526098df2e28f92291874fad2ed623b02851))
+
+
 ## [0.6.0](https://github.com/elastiflow/helm-chart-netobserv/compare/netobserv-0.5.0...netobserv-0.6.0) (2025-09-26)
 
 ### Features
