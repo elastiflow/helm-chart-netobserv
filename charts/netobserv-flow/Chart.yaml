@@ -1,6 +1,6 @@
 apiVersion: v2
-name: netobserv
-description: ElastiFlow NetObserv
+name: netobserv-flow
+description: ElastiFlow NetObserv Flow Collector
 type: application
 version: 0.7.0
 appVersion: 7.16.0
