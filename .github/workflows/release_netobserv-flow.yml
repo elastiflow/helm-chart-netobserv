@@ -1,0 +1,24 @@
+---
+name: Release netobserv-flow
+concurrency:
+  group: release-netobserv-flow-${{ github.ref }}
+  cancel-in-progress: false
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - 'charts/netobserv-flow/*'
+
+jobs:
+  deploy:
+    name: Release netobserv-flow
+    uses: ./.github/workflows/reusable_release.yml
+    permissions:
+      contents: write
+      pull-requests: write
+    with:
+      chart_name: netobserv-flow
+      chart_dir: charts/netobserv-flow
+      chart_yaml_version_keys: '.version'
+    secrets: inherit
