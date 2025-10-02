@@ -7,5 +7,5 @@
 
 # Misc
 tmp.*
-charts/netobserv/charts/**
+charts/**/charts/*
 helm_rendered

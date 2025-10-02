@@ -3,4 +3,3 @@ plugins:
     - preset: conventionalcommits
   - - "@semantic-release/release-notes-generator"
     - preset: conventionalcommits
-tagFormat: "netobserv-${version}"

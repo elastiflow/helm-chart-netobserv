@@ -1,0 +1,131 @@
+---
+on:
+  workflow_call:
+    inputs:
+      chart_name:
+        type: string
+        required: true
+        description: "Chart name to release"
+      chart_dir:
+        type: string
+        required: true
+        description: "Chart path to release"
+      chart_yaml_version_keys:
+        type: string
+        required: true
+        description: "Keys in the Chart.yaml to replace with the new version"
+      runs-on:
+        type: string
+        default: ubuntu-latest
+        description: "GHA runner for the job (ubuntu-latest, ubuntu-latest-4c, ubuntu-latest-8c)"
+      timeout-minutes:
+        type: number
+        default: 15
+        description: "Job timeout in minutes"
+
+jobs:
+  # Detect if a commit was made from a release PR with title like '[release v0.1.1] (#49)'
+  release_or_pr:
+    name: Release or Release PR?
+    runs-on: ${{ inputs.runs-on }}
+    timeout-minutes: ${{ inputs.timeout-minutes }}
+    outputs:
+      is_release: ${{ steps.release_or_pr.outputs.is_release }}
+    steps:
+      - id: release_or_pr
+        env:
+          COMMIT_MESSAGE: ${{ github.event.head_commit.message }}
+        run: |
+          cat > /tmp/commit_message <<- EOF
+          ${COMMIT_MESSAGE}
+          EOF
+
+          # https://regex101.com/r/plAysi/1
+          echo $(grep -Pq '^\[release netobserv-[a-z]+-(?:[0-9]{1,3}\.?){3}(?:-rc(?:\.[0-9]{1,3})?)?\] \(#[0-9]{1,5}\)$' /tmp/commit_message && echo true || echo false) > /tmp/is_release
+          echo "is_release=$(cat /tmp/is_release)" >> $GITHUB_OUTPUT
+
+          echo is_release=$(cat /tmp/is_release)
+
+
+  release_pr_create:
+    name: Release ${{ inputs.chart_name }} PR create
+    needs: [release_or_pr]
+    if: ${{ ! fromJson(needs.release_or_pr.outputs.is_release) }}
+    runs-on: ${{ inputs.runs-on }}
+    timeout-minutes: ${{ inputs.timeout-minutes }}
+    permissions:
+      contents: write
+      pull-requests: write
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v5
+      - name: Prepare ${{ inputs.chart_name }} Release
+        id: prepare_release
+        uses: elastiflow/gha-reusable/actions/prepare-release@v0
+        with:
+          semantic_release_tag_format: ${{ inputs.chart_name }}-${version}
+          changelog_update: true
+          changelog_path: ${{ inputs.chart_dir }}/CHANGELOG.md
+          bump_version_yaml: true
+          bump_version_yaml_path: ${{ inputs.chart_dir }}/Chart.yaml
+          bump_version_yaml_key: ${{ inputs.chart_yaml_version_keys }}
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+      - name: Create Pull Request
+        if: ${{ fromJson(steps.prepare_release.outputs.new_release_published) }}
+        uses: peter-evans/create-pull-request@271a8d0340265f705b14b6d32b9829c1cb33d45e # v7.0.8
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          base: "${{ github.ref_name }}"
+          branch: release-${{ inputs.chart_name }}-from-${{ github.ref_name }}
+          title: '[release ${{ inputs.chart_name }}-${{ steps.prepare_release.outputs.new_release_version }}]'
+          body: |
+            # Description
+            Release the v${{ steps.prepare_release.outputs.new_release_version }} version
+
+            # Changelog
+            ${{ steps.prepare_release.outputs.new_release_notes }}
+
+  release:
+    name: Release ${{ inputs.chart_name }}
+    needs: [release_or_pr]
+    if: ${{ fromJson(needs.release_or_pr.outputs.is_release) }}
+    runs-on: ${{ inputs.runs-on }}
+    timeout-minutes: ${{ inputs.timeout-minutes }}
+    permissions:
+      contents: write
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v5
+      - name: Prepare Release
+        id: prepare_release
+        uses: elastiflow/gha-reusable/actions/prepare-release@v0
+        with:
+          semantic_release_tag_format: ${{ inputs.chart_name }}-${version}
+          add_git_notes: true
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+      - name: Configure Git
+        run: |
+          git config user.name "$GITHUB_ACTOR"
+          git config user.email "$GITHUB_ACTOR@users.noreply.github.com"
+      - name: Create GH release
+        if: ${{ fromJson(steps.prepare_release.outputs.new_release_published) }}
+        uses: softprops/action-gh-release@72f2c25fcb47643c292f7107632f7a47c1df5cd8
+        with:
+          name: ${{ inputs.chart_name }}-${{ steps.prepare_release.outputs.new_release_version }}
+          tag_name: ${{ inputs.chart_name }}-${{ steps.prepare_release.outputs.new_release_version }}
+          body: ${{ steps.prepare_release.outputs.new_release_notes }}
+          preserve_order: true
+          make_latest: true
+      - name: Install Helm
+        uses: azure/setup-helm@v4
+      - name: Install Helm dependencies
+        run: |
+          (helm dependency list ${{ inputs.chart_dir }} || true) | grep -E 'https://' | while read -r dep; do
+            helm repo add $(echo ${dep} | awk '{print $1}') $(echo ${dep} | awk '{print $4}')
+          done
+      - name: Run chart-releaser
+        uses: helm/chart-releaser-action@v1.7.0
+        env:
+          CR_TOKEN: "${{ secrets.GITHUB_TOKEN }}"
+        with:
+          charts_dir: ${{ inputs.chart_dir }}

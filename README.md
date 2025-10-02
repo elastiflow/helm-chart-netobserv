@@ -5,6 +5,7 @@
   - [Installation](#installation)
   - [Configuration](#configuration)
   - [Upgrade](#upgrade)
+    - [`netobserv-flow-0.x.x`/`netobserv-os-0.x.x`](#netobserv-flow-0xxnetobserv-os-0xx)
     - [`netobserv-0.4.14` -\> `netobserv-0.5.x` notes](#netobserv-0414---netobserv-05x-notes)
     - [License Setup](#license-setup)
   - [License](#license)
@@ -36,6 +37,24 @@ helm install netobserv elastiflow/netobserv
 
 ## Upgrade
 
+### `netobserv-flow-0.x.x`/`netobserv-os-0.x.x`
+
+In order to remove the dependencies from the application chart but still provide an ability for an easy spin-up:
+
+- All dependencies were removed from the `netobserv` chart
+- `netobserv` chart is renamed to `netobserv-flow` to align with NetObserv Flow Collector app that is managed by the chart.
+- `netobserv-os` chart was introduce to combine NetObserv Flow Collector, OpenSearch, and OpenSearch Dashboards.
+
+In order to migrate from `netobserv-0.5.x` you should be able to install the new chart with a different release name, for example `netobserv-flow`, test the new chart and uninstall old chart release.
+Additionally it's a good idea to get the diff between rendered manifests and cluster state to ensure no unintended changes occur:
+
+```sh
+rm -rf helm_rendered; helm template -n elastiflow -f examples/flow_os_simple_gke/values.yaml --output-dir helm_rendered netobserv-flow elastiflow/netobserv-flow
+
+# Diff with existing K8s resources
+kubectl diff -R -f helm_rendered/
+```
+
 ### `netobserv-0.4.14` -> `netobserv-0.5.x` notes
 
 Changed values attribute names:
@@ -50,9 +69,9 @@ Hint, use `kubectl diff` before upgrade to spot potential issues.
 
 ```sh
 helm repo update
-rm -rf helm_rendered/netobserv
+rm -rf helm_rendered
 helm template -n elastiflow -f examples/flow_os_simple_gke/values.yaml --output-dir helm_rendered netobserv elastiflow/netobserv --version netobserv-0.5.0
-kubectl diff -R -f helm_rendered/netobserv/
+kubectl diff -R -f helm_rendered/
 ```
 
 ### License Setup

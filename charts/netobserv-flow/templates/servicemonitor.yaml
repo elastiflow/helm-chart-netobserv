@@ -89,5 +89,3 @@ spec:
   proxyUrl: {{ . | quote }}
   {{- end }}
 {{- end }}
-
-
