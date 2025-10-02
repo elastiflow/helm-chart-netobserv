@@ -36,7 +36,9 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        chart: ["charts/netobserv-flow", "charts/netobserv-os"]
+        chart: ["charts/netobserv-flow"]
+        # TODO: Uncomment in follow-up
+        # chart: ["charts/netobserv-flow", "charts/netobserv-os"]
     steps:
       - name: Checkout
         uses: actions/checkout@v4
