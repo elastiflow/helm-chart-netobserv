@@ -2,21 +2,12 @@ apiVersion: v2
 name: netobserv-flow
 description: ElastiFlow NetObserv Flow Collector
 type: application
-version: 0.7.0
+version: 0.1.0
 appVersion: 7.16.0
 icon: https://artifacthub.io/image/a7c44004-9982-4ba1-a4c9-c626340d3d38@2x
 sources:
   - https://github.com/elastiflow/helm-chart-netobserv
   - https://hub.docker.com/r/elastiflow/flowcollector/
-dependencies:
-  - name: opensearch
-    repository: https://opensearch-project.github.io/helm-charts/
-    version: ">= 3.2.1"
-    condition: opensearch.enabled
-  - name: opensearch-dashboards
-    repository: https://opensearch-project.github.io/helm-charts/
-    version: ">= 3.2.2"
-    condition: opensearch-dashboards.enabled
 maintainers:
   - name: ElastiFlow Engineering Team
     email: engineering@elastiflow.com
