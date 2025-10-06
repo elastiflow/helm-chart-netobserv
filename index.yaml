@@ -388,4 +388,32 @@ entries:
     urls:
     - https://github.com/elastiflow/helm-chart-netobserv/releases/download/netobserv-0.4.4/netobserv-0.4.4.tgz
     version: 0.4.4
-generated: "2025-09-29T16:22:52.219206404Z"
+  netobserv-flow:
+  - annotations:
+      artifacthub.io/license: Apache-2.0
+      artifacthub.io/links: |
+        - name: Chart Source
+          url: https://github.com/elastiflow/helm-chart-netobserv
+    apiVersion: v2
+    appVersion: 7.16.0
+    created: "2025-10-06T16:11:40.341489072Z"
+    description: ElastiFlow NetObserv Flow Collector
+    digest: 7a4994392d04c503d0b582b1c0a7192ceb408d9a65d9d73926bda889c136d6a3
+    icon: https://artifacthub.io/image/a7c44004-9982-4ba1-a4c9-c626340d3d38@2x
+    keywords:
+    - netflow
+    - network
+    - flow
+    - observability
+    maintainers:
+    - email: engineering@elastiflow.com
+      name: ElastiFlow Engineering Team
+    name: netobserv-flow
+    sources:
+    - https://github.com/elastiflow/helm-chart-netobserv
+    - https://hub.docker.com/r/elastiflow/flowcollector/
+    type: application
+    urls:
+    - https://github.com/elastiflow/helm-chart-netobserv/releases/download/netobserv-flow-0.1.0/netobserv-flow-0.1.0.tgz
+    version: 0.1.0
+generated: "2025-10-06T16:11:40.341544496Z"
