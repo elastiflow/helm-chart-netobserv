@@ -4,8 +4,6 @@ concurrency:
   cancel-in-progress: true
 on:
   pull_request:
-    branches:
-      - main
   push:
     branches:
       - main
@@ -34,11 +32,6 @@ jobs:
   helm_checks:
     name: Run Helm sanity checks
     runs-on: ubuntu-latest
-    strategy:
-      matrix:
-        chart: ["charts/netobserv-flow"]
-        # TODO: Uncomment in follow-up
-        # chart: ["charts/netobserv-flow", "charts/netobserv-os"]
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -52,26 +45,29 @@ jobs:
           check-latest: true
       - name: Build helm dependencies
         run: |
-          (helm dependency list ${{ matrix.chart }} || true) | grep -E 'https://' | while read -r dep; do
-            helm repo add $(echo ${dep} | awk '{print $1}') $(echo ${dep} | awk '{print $4}')
-          done
+          find charts -mindepth 1 -maxdepth 1 -type d | while read -r chart; do
+            echo Building for ${chart}
+            (helm dependency list ${chart} || true) | grep -E 'https://' | while read -r dep; do
+              helm repo add $(echo ${dep} | awk '{print $1}') $(echo ${dep} | awk '{print $4}')
+            done
 
-          helm dependency build ${{ matrix.chart }}
+            helm dependency build ${chart}
+          done
       - name: Set up chart-testing
         uses: helm/chart-testing-action@v2.7.0
       - name: Run chart-testing (list-changed)
         id: list-changed
         run: |
-          changed=$(ct list-changed --target-branch ${{ github.event.repository.default_branch }} --chart-dirs ${{ matrix.chart }})
+          changed=$(ct list-changed --target-branch ${{ github.event.repository.default_branch }})
           if [[ -n "$changed" ]]; then
             echo "changed=true" >> "$GITHUB_OUTPUT"
           fi
       - name: Run chart-testing (lint)
         if: steps.list-changed.outputs.changed == 'true'
-        run: ct lint --target-branch ${{ github.event.repository.default_branch }} --validate-maintainers=false --check-version-increment=false --chart-dirs ${{ matrix.chart }}
+        run: ct lint --target-branch ${{ github.event.repository.default_branch }} --validate-maintainers=false --check-version-increment=false
       - name: Create kind cluster
         if: steps.list-changed.outputs.changed == 'true'
         uses: helm/kind-action@v1.12.0
       - name: Run chart-testing (install)
         if: steps.list-changed.outputs.changed == 'true'
-        run: ct install --target-branch ${{ github.event.repository.default_branch }} --helm-extra-set-args="--set EF_OUTPUT_STDOUT_ENABLE=true" --charts ${{ matrix.chart }}
+        run: ct install --target-branch ${{ github.event.repository.default_branch }} --helm-extra-set-args="--set EF_OUTPUT_STDOUT_ENABLE=true"

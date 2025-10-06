@@ -14,6 +14,14 @@ on:
         type: string
         required: true
         description: "Keys in the Chart.yaml to replace with the new version"
+      repository_owner:
+        type: string
+        default: elastiflow
+        description: "Repository owner to push the Helm registry index"
+      repository_name:
+        type: string
+        default: helm-chart-netobserv
+        description: "Repository name to push the Helm registry index"
       runs-on:
         type: string
         default: ubuntu-latest
@@ -48,7 +56,7 @@ jobs:
 
 
   release_pr_create:
-    name: Release ${{ inputs.chart_name }} PR create
+    name: Release PR create
     needs: [release_or_pr]
     if: ${{ ! fromJson(needs.release_or_pr.outputs.is_release) }}
     runs-on: ${{ inputs.runs-on }}
@@ -63,7 +71,8 @@ jobs:
         id: prepare_release
         uses: elastiflow/gha-reusable/actions/prepare-release@v0
         with:
-          semantic_release_tag_format: ${{ inputs.chart_name }}-${version}
+          semantic_release_working_directory: ${{ inputs.chart_dir }}
+          semantic_release_monorepo: true
           changelog_update: true
           changelog_path: ${{ inputs.chart_dir }}/CHANGELOG.md
           bump_version_yaml: true
@@ -86,7 +95,7 @@ jobs:
             ${{ steps.prepare_release.outputs.new_release_notes }}
 
   release:
-    name: Release ${{ inputs.chart_name }}
+    name: Release
     needs: [release_or_pr]
     if: ${{ fromJson(needs.release_or_pr.outputs.is_release) }}
     runs-on: ${{ inputs.runs-on }}
@@ -96,26 +105,20 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v5
+        with:
+          fetch-depth: 0
       - name: Prepare Release
         id: prepare_release
         uses: elastiflow/gha-reusable/actions/prepare-release@v0
         with:
-          semantic_release_tag_format: ${{ inputs.chart_name }}-${version}
+          semantic_release_working_directory: ${{ inputs.chart_dir }}
+          semantic_release_monorepo: true
           add_git_notes: true
           github_token: ${{ secrets.GITHUB_TOKEN }}
       - name: Configure Git
         run: |
           git config user.name "$GITHUB_ACTOR"
           git config user.email "$GITHUB_ACTOR@users.noreply.github.com"
-      - name: Create GH release
-        if: ${{ fromJson(steps.prepare_release.outputs.new_release_published) }}
-        uses: softprops/action-gh-release@72f2c25fcb47643c292f7107632f7a47c1df5cd8
-        with:
-          name: ${{ inputs.chart_name }}-${{ steps.prepare_release.outputs.new_release_version }}
-          tag_name: ${{ inputs.chart_name }}-${{ steps.prepare_release.outputs.new_release_version }}
-          body: ${{ steps.prepare_release.outputs.new_release_notes }}
-          preserve_order: true
-          make_latest: true
       - name: Install Helm
         uses: azure/setup-helm@v4
       - name: Install Helm dependencies
@@ -123,9 +126,27 @@ jobs:
           (helm dependency list ${{ inputs.chart_dir }} || true) | grep -E 'https://' | while read -r dep; do
             helm repo add $(echo ${dep} | awk '{print $1}') $(echo ${dep} | awk '{print $4}')
           done
-      - name: Run chart-releaser
+      - name: Install chart-releaser
         uses: helm/chart-releaser-action@v1.7.0
         env:
           CR_TOKEN: "${{ secrets.GITHUB_TOKEN }}"
         with:
-          charts_dir: ${{ inputs.chart_dir }}
+          install_only: true
+      - name: Package helm chart
+        run: |
+          cr package ${{ inputs.chart_dir }}
+      - name: Create GH release
+        if: ${{ fromJson(steps.prepare_release.outputs.new_release_published) }}
+        uses: softprops/action-gh-release@72f2c25fcb47643c292f7107632f7a47c1df5cd8
+        with:
+          name: ${{ inputs.chart_name }}-${{ steps.prepare_release.outputs.new_release_version }}
+          tag_name: ${{ inputs.chart_name }}-${{ steps.prepare_release.outputs.new_release_version }}
+          body: ${{ steps.prepare_release.outputs.new_release_notes }}
+          target_commitish: ${{ github.ref_name }}
+          preserve_order: true
+          make_latest: true
+          files: ".cr-release-packages/${{ inputs.chart_name }}-*.tgz"
+      - name: Update GH pages index
+        run: |
+          mkdir .cr-index
+          cr index --push -t ${{ secrets.GITHUB_TOKEN }} --owner ${{ inputs.repository_owner	}} --git-repo ${{ inputs.repository_name	}}
