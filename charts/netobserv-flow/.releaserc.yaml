@@ -3,4 +3,5 @@ plugins:
     - preset: conventionalcommits
   - - "@semantic-release/release-notes-generator"
     - preset: conventionalcommits
-tagFormat: "netobserv-${version}"
+extends: semantic-release-monorepo
+tagFormat: netobserv-flow-${version}

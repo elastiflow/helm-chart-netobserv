@@ -1,0 +1,24 @@
+---
+name: Release netobserv-os
+concurrency:
+  group: release-netobserv-os-${{ github.ref }}
+  cancel-in-progress: false
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - 'charts/netobserv-os/*'
+
+jobs:
+  deploy:
+    name: Release netobserv-os
+    uses: ./.github/workflows/reusable_release.yml
+    permissions:
+      contents: write
+      pull-requests: write
+    with:
+      chart_name: netobserv-os
+      chart_dir: charts/netobserv-os
+      chart_yaml_version_keys: '.version,.appVersion'
+    secrets: inherit

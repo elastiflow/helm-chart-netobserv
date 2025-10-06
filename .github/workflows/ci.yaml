@@ -4,13 +4,20 @@ concurrency:
   cancel-in-progress: true
 on:
   pull_request:
-    branches:
-      - main
   push:
     branches:
       - main
 
 jobs:
+  pr_checks:
+    name: PR Checks
+    if: >-
+      ${{
+        github.event_name == 'pull_request'
+        && !(github.event_name == 'pull_request' && github.event.pull_request.user.login == 'github-actions[bot]' && startsWith(github.event.pull_request.title, '[release netobserv-'))
+      }}
+    uses: elastiflow/gha-reusable/.github/workflows/reusable_pr_checks.yml@v0
+
   renovate_config_validator:
     name: renovate config validator
     runs-on: ubuntu-latest
@@ -38,8 +45,14 @@ jobs:
           check-latest: true
       - name: Build helm dependencies
         run: |
-          helm repo add opensearch https://opensearch-project.github.io/helm-charts/
-          helm dependency build charts/netobserv
+          find charts -mindepth 1 -maxdepth 1 -type d | while read -r chart; do
+            echo Building for ${chart}
+            (helm dependency list ${chart} || true) | grep -E 'https://' | while read -r dep; do
+              helm repo add $(echo ${dep} | awk '{print $1}') $(echo ${dep} | awk '{print $4}')
+            done
+
+            helm dependency build ${chart}
+          done
       - name: Set up chart-testing
         uses: helm/chart-testing-action@v2.7.0
       - name: Run chart-testing (list-changed)
