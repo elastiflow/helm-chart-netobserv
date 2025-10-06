@@ -25,7 +25,7 @@ jobs:
       image: renovate/renovate:latest
       options: --user root # root is needed for checkout to work
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
       - name: Validate Renovate config
         run: renovate-config-validator --strict
 
@@ -34,7 +34,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
         with:
           fetch-depth: 0
       - name: Set up Helm
