@@ -1,99 +1,116 @@
-env:
-  - name: EF_LICENSE_ACCEPTED
-    value: "true"
-  - name: EF_OUTPUT_OPENSEARCH_INDEX_TEMPLATE_REPLICAS
-    value: "0"
-  - name: EF_INPUT_FLOW_BENCHMARK_ENABLE
-    value: "false" # `false` is the default, keeping for ease of updating for testing
-  - name: EF_OUTPUT_STDOUT_ENABLE
-    value: "false" # `false` is the default, keeping for ease of updating for testing
-
-startupProbe:
+netobserv-flow:
   enabled: true
-livenessProbe:
-  enabled: true
-readinessProbe:
-  enabled: true
+  fullnameOverride: netobserv-flow
 
-autoscaling:
-  enabled: true
-  minReplicas: 1
-  maxReplicas: 1
+  env:
+    - name: EF_LICENSE_ACCEPTED
+      value: "true"
+    - name: EF_OUTPUT_OPENSEARCH_INDEX_TEMPLATE_REPLICAS
+      value: "0"
+    - name: EF_INPUT_FLOW_BENCHMARK_ENABLE
+      value: "false" # `false` is the default, keeping for ease of updating for testing
+    - name: EF_OUTPUT_STDOUT_ENABLE
+      value: "false" # `false` is the default, keeping for ease of updating for testing
 
-tolerations:
-  - key: k8s.elastiflow.io/role
-    operator: Equal
-    value: elastiflow-spot
-  - key: cloud.google.com/gke-spot
-    operator: Equal
-    value: "true"
+  startupProbe:
+    enabled: true
+  livenessProbe:
+    enabled: true
+  readinessProbe:
+    enabled: true
 
-affinity:
-  nodeAffinity:
-    requiredDuringSchedulingIgnoredDuringExecution:
-      nodeSelectorTerms:
-        - matchExpressions:
-            - key: k8s.elastiflow.io/role
-              operator: In
-              values:
-                - elastiflow-spot
-            - key: "cloud.google.com/machine-family"
-              operator: "In"
-              values: ["e2"]
-            - key: "node.kubernetes.io/instance-type"
-              operator: "In"
-              # https://cloud.google.com/compute/vm-instance-pricing
-              values: ["e2-standard-2", "e2-standard-4"]
+  autoscaling:
+    enabled: true
+    minReplicas: 1
+    maxReplicas: 1
 
-# Discourage to colocate the collector with opensearch
-topologySpreadConstraints:
-  - maxSkew: 1
-    minDomains: 2
-    topologyKey: kubernetes.io/hostname
-    whenUnsatisfiable: DoNotSchedule
-    labelSelector:
-      matchExpressions:
-        - key: app.kubernetes.io/name
-          operator: In
-          values: [opensearch, netobserv]
+  tolerations:
+    - key: k8s.elastiflow.io/role
+      operator: Equal
+      value: elastiflow-spot
+    - key: cloud.google.com/gke-spot
+      operator: Equal
+      value: "true"
 
-service:
-  annotations:
-    cloud.google.com/neg: '{"ingress": true}'
-    cloud.google.com/app-protocols: '{"api":"HTTP"}'
-  ports:
-    - port: 8080
-      targetPort: 8080
-      protocol: TCP
-      name: api
+  affinity:
+    nodeAffinity:
+      requiredDuringSchedulingIgnoredDuringExecution:
+        nodeSelectorTerms:
+          - matchExpressions:
+              - key: k8s.elastiflow.io/role
+                operator: In
+                values:
+                  - elastiflow-spot
+              - key: "cloud.google.com/machine-family"
+                operator: "In"
+                values: ["e2"]
+              - key: "node.kubernetes.io/instance-type"
+                operator: "In"
+                # https://cloud.google.com/compute/vm-instance-pricing
+                values: ["e2-standard-2", "e2-standard-4"]
 
-# TODO: Test ingress
-# ingress:
-#   enabled: true
-#   annotations:
-#     kubernetes.io/ingress.class: "gce-internal"
-#   rules:
-#     - host: your-store.example
-#       http:
-#         paths:
-#         - path: /products
-#           backend:
-#             service:
-#               name: netobserv
-#               port:
-#                 name: api
+  # Discourage to colocate the collector with opensearch
+  topologySpreadConstraints:
+    - maxSkew: 1
+      minDomains: 2
+      topologyKey: kubernetes.io/hostname
+      whenUnsatisfiable: DoNotSchedule
+      labelSelector:
+        matchExpressions:
+          - key: app.kubernetes.io/name
+            operator: In
+            values: [opensearch, netobserv]
 
-outputOpenSearch:
-  enable: true
-  addresses: opensearch-cluster-master.elastiflow.svc.gke-main-a.us-east1:9200
-  password: Elast1flow! # Insecure
-  tls:
+  service:
+    annotations:
+      cloud.google.com/neg: '{"ingress": true}'
+      cloud.google.com/app-protocols: '{"api":"HTTP"}'
+    ports:
+      - port: 8080
+        targetPort: 8080
+        protocol: TCP
+        name: api
+
+  # TODO: Test ingress
+  # ingress:
+  #   enabled: true
+  #   annotations:
+  #     kubernetes.io/ingress.class: "gce-internal"
+  #   rules:
+  #     - host: your-store.example
+  #       http:
+  #         paths:
+  #         - path: /products
+  #           backend:
+  #             service:
+  #               name: netobserv
+  #               port:
+  #                 name: api
+
+  outputOpenSearch:
     enable: true
-    skipVerification: true
+    addresses: opensearch-cluster-master.elastiflow.svc.gke-main-a.us-east1:9200
+    password: Elast1flow! # Insecure
+    tls:
+      enable: true
+      skipVerification: true
 
-  dashboards:
-    provision: true
-    dashboards_url: http://elastiflow-os-dashboards.elastiflow.svc.gke-main-a.us-east1:5601
+    dashboards:
+      provision: true
+      dashboards_url: http://elastiflow-os-dashboards.elastiflow.svc.gke-main-a.us-east1:5601
+
+  extraObjects:
+    - |
+      apiVersion: v1
+      kind: Secret
+      metadata:
+        name: netobserv-tls
+        labels:
+          {{- include "netobserv.labels" . | nindent 4 }}
+      type: kubernetes.io/tls
+      data:
+        tls.crt: {{ .Files.Get "tls/netobserv.crt" | b64enc }}
+        tls.key: {{ .Files.Get "tls/netobserv.key" | b64enc }}
 
 opensearch:
   enabled: true

@@ -8,7 +8,7 @@
 
 ## Overview
 
-This playbook deploys NetObserv Flow with OpenSearch as the data platform in a GCP GKE cluster.  
+This example deploys NetObserv Flow with OpenSearch as the data platform in a GCP GKE cluster.  
 This example is intended only for demonstration, testing, or proof-of-concept use, since OpenSearch is deployed in a single-node mode.
 
 Notes on the example deployment:
@@ -18,17 +18,15 @@ Notes on the example deployment:
 - A GKE internal load balancer is used for the OpenSearch Dashboard ingress. This example also assumes you can access internal GCP subnets via a VPN.
 - Spot instances are used, please tweak affinity and tolerations in the `values.yaml` if needed.
 
-<!-- TODO: use remote chart everywhere in the doc -->
-
 ## Install
 
 ```sh
-helm repo add elastiflow https://elastiflow.github.io/helm-chart-netobserv/
+helm repo add netobserv https://elastiflow.github.io/helm-chart-netobserv/
 helm repo add opensearch https://opensearch-project.github.io/helm-charts/
 helm repo update
-helm dependency build elastiflow/netobserv
+helm dependency build elastiflow/netobserv-os
 kubectl create namespace elastiflow
-helm upgrade -i --wait --timeout 15m -n elastiflow -f examples/flow_os_simple_gke/values.yaml netobserv elastiflow/netobserv
+helm upgrade -i --wait --timeout 15m -n elastiflow -f examples/flow_os_simple_gke/values.yaml netobserv elastiflow/netobserv-os
 ```
 
 ## Access
@@ -46,8 +44,8 @@ Now you can navigate to the obtained IP in your browser (assuming you have acces
 To render and diff Helm templates to Kubernetes manifests, run:
 
 ```sh
-rm -rf helm_rendered/netobserv; helm template -n elastiflow -f examples/flow_os_simple_gke/values.yaml --output-dir helm_rendered netobserv elastiflow/netobserv
+rm -rf helm_rendered; helm template -n elastiflow -f examples/flow_os_simple_gke/values.yaml --output-dir helm_rendered netobserv elastiflow/netobserv-os
 
 # Diff with existing K8s resources
-kubectl diff -R -f helm_rendered/netobserv/
+kubectl diff -R -f helm_rendered/
 ```
