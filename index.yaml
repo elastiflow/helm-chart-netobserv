@@ -416,4 +416,44 @@ entries:
     urls:
     - https://github.com/elastiflow/helm-chart-netobserv/releases/download/netobserv-flow-0.1.0/netobserv-flow-0.1.0.tgz
     version: 0.1.0
-generated: "2025-10-06T16:11:40.341544496Z"
+  netobserv-os:
+  - annotations:
+      artifacthub.io/license: Apache-2.0
+      artifacthub.io/links: |
+        - name: Chart Source
+          url: https://github.com/elastiflow/helm-chart-netobserv
+    apiVersion: v2
+    appVersion: 0.1.0
+    created: "2025-10-07T12:30:25.054367346Z"
+    dependencies:
+    - condition: netobserv-flow.enabled
+      name: netobserv-flow
+      repository: https://elastiflow.github.io/helm-chart-netobserv/
+      version: '>= 0.1.0'
+    - condition: opensearch.enabled
+      name: opensearch
+      repository: https://opensearch-project.github.io/helm-charts/
+      version: '>= 3.2.1'
+    - condition: opensearch-dashboards.enabled
+      name: opensearch-dashboards
+      repository: https://opensearch-project.github.io/helm-charts/
+      version: '>= 3.2.2'
+    description: ElastiFlow NetObserv with OpenSearch stack
+    digest: 4a297bc7bd82f89ca5d659a970b791cdcf216d95eeb3baf0a9b8f4aa310262f7
+    icon: https://artifacthub.io/image/a7c44004-9982-4ba1-a4c9-c626340d3d38@2x
+    keywords:
+    - netflow
+    - network
+    - flow
+    - observability
+    maintainers:
+    - email: engineering@elastiflow.com
+      name: ElastiFlow Engineering Team
+    name: netobserv-os
+    sources:
+    - https://github.com/elastiflow/helm-chart-netobserv
+    type: application
+    urls:
+    - https://github.com/elastiflow/helm-chart-netobserv/releases/download/netobserv-os-0.1.0/netobserv-os-0.1.0.tgz
+    version: 0.1.0
+generated: "2025-10-07T12:30:25.054407812Z"
