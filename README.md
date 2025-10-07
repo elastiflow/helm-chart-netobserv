@@ -28,9 +28,9 @@ The ElastiFlow Unified Flow Collector receives, decodes, transforms, normalizes,
 ## Installation
 
 ```sh
-helm repo add elastiflow https://elastiflow.github.io/helm-chart-netobserv/
+helm repo add netobserv https://elastiflow.github.io/helm-chart-netobserv/
 helm repo update
-helm install netobserv elastiflow/netobserv
+helm install netobserv netobserv/netobserv-flow
 ```
 
 ## Configuration
