@@ -1,0 +1,7 @@
+plugins:
+  - - "@semantic-release/commit-analyzer"
+    - preset: conventionalcommits
+  - - "@semantic-release/release-notes-generator"
+    - preset: conventionalcommits
+extends: semantic-release-monorepo
+tagFormat: netobserv-os-${version}

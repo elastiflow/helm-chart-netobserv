@@ -1,0 +1,10 @@
+netobserv-flow:
+  enabled: false
+
+# OpenSearch chart values (installed as a dependency)
+opensearch:
+  enabled: false
+
+# OpenSearch Dashboards chart values (installed as a dependency)
+opensearch-dashboards:
+  enabled: false
