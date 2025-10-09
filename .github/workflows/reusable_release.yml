@@ -10,6 +10,14 @@ on:
         type: string
         required: true
         description: "Chart path to release"
+      include_paths:
+        type: string
+        default: '**/*'
+        description: "Include paths to determine related commits, comma-separated list"
+      exclude_paths:
+        type: string
+        default: ""
+        description: "Exclude paths to determine related commits, comma-separated list"
       chart_yaml_version_keys:
         type: string
         required: true
@@ -67,18 +75,20 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v5
-      - name: Prepare ${{ inputs.chart_name }} Release
+        with:
+          fetch-depth: 0
+      - name: Prepare Release
         id: prepare_release
         uses: elastiflow/gha-reusable/actions/prepare-release@v0
         with:
-          semantic_release_working_directory: ${{ inputs.chart_dir }}
-          semantic_release_monorepo: true
+          tag_prefix: "${{ inputs.chart_name }}-"
+          include_paths: ${{ inputs.include_paths }}
+          exclude_paths: ${{ inputs.exclude_paths }}
           changelog_update: true
           changelog_path: ${{ inputs.chart_dir }}/CHANGELOG.md
           bump_version_yaml: true
           bump_version_yaml_path: ${{ inputs.chart_dir }}/Chart.yaml
           bump_version_yaml_key: ${{ inputs.chart_yaml_version_keys }}
-          github_token: ${{ secrets.GITHUB_TOKEN }}
       - name: Create Pull Request
         if: ${{ fromJson(steps.prepare_release.outputs.new_release_published) }}
         uses: peter-evans/create-pull-request@271a8d0340265f705b14b6d32b9829c1cb33d45e # v7.0.8
@@ -111,10 +121,10 @@ jobs:
         id: prepare_release
         uses: elastiflow/gha-reusable/actions/prepare-release@v0
         with:
-          semantic_release_working_directory: ${{ inputs.chart_dir }}
-          semantic_release_monorepo: true
+          tag_prefix: "${{ inputs.chart_name }}-"
+          include_paths: ${{ inputs.include_paths }}
+          exclude_paths: ${{ inputs.exclude_paths }}
           add_git_notes: true
-          github_token: ${{ secrets.GITHUB_TOKEN }}
       - name: Configure Git
         run: |
           git config user.name "$GITHUB_ACTOR"

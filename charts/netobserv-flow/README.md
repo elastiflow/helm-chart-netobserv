@@ -1,8 +1,12 @@
 # netObserv Helm Chart
 
-- [Overview](#overview)
-- [Installation](#installation)
-- [Configuration](#configuration)
+- [netObserv Helm Chart](#netobserv-helm-chart)
+  - [Overview](#overview)
+  - [Installation](#installation)
+  - [Configuration](#configuration)
+    - [License Setup](#license-setup)
+    - [Prometheus Operator ServiceMonitor](#prometheus-operator-servicemonitor)
+  - [License](#license)
 
 ## Overview
 
