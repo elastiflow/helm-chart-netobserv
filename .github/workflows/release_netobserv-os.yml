@@ -20,5 +20,6 @@ jobs:
     with:
       chart_name: netobserv-os
       chart_dir: charts/netobserv-os
+      include_paths: "charts/netobserv-os/**/*"
       chart_yaml_version_keys: '.version,.appVersion'
     secrets: inherit
