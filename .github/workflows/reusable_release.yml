@@ -56,11 +56,9 @@ jobs:
           ${COMMIT_MESSAGE}
           EOF
 
-          # https://regex101.com/r/plAysi/1
-          echo $(grep -Pq '^\[release netobserv-[a-z]+-(?:[0-9]{1,3}\.?){3}(?:-rc(?:\.[0-9]{1,3})?)?\] \(#[0-9]{1,5}\)$' /tmp/commit_message && echo true || echo false) > /tmp/is_release
+          # https://regex101.com/r/1z85UX/3
+          echo $(grep -Pq '^\[release .+\] \(#[0-9]{1,5}\)$' /tmp/commit_message && echo true || echo false) > /tmp/is_release
           echo "is_release=$(cat /tmp/is_release)" >> $GITHUB_OUTPUT
-
-          echo is_release=$(cat /tmp/is_release)
 
 
   release_pr_create:
@@ -124,7 +122,6 @@ jobs:
           tag_prefix: "${{ inputs.chart_name }}-"
           include_paths: ${{ inputs.include_paths }}
           exclude_paths: ${{ inputs.exclude_paths }}
-          add_git_notes: true
       - name: Configure Git
         run: |
           git config user.name "$GITHUB_ACTOR"
