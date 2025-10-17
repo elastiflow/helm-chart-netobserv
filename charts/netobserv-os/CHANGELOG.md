@@ -1,3 +1,13 @@
+## [netobserv-os-0.2.0] - 2025-10-17
+
+### Features
+
+- Bump NetObserv OpenSearch chart (#91)
+
+[netobserv-os-0.1.1..netobserv-os-0.2.0](https://github.com/elastiflow/helm-chart-netobserv/compare/netobserv-os-0.1.1...netobserv-os-0.2.0)
+
+
+
 ## [netobserv-os-0.1.1] - 2025-10-09
 
 ### Bug Fixes
