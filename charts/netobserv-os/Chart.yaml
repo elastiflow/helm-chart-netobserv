@@ -2,8 +2,8 @@ apiVersion: v2
 name: netobserv-os
 description: ElastiFlow NetObserv with OpenSearch stack
 type: application
-version: 0.1.1
-appVersion: 0.1.1
+version: 0.2.0
+appVersion: 0.2.0
 icon: https://artifacthub.io/image/a7c44004-9982-4ba1-a4c9-c626340d3d38@2x
 sources:
   - https://github.com/elastiflow/helm-chart-netobserv
