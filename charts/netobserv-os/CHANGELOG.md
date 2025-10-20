@@ -1,3 +1,13 @@
+## [netobserv-os-0.3.0] - 2025-10-20
+
+### Features
+
+- Bump netobserv-flow chart to 0.3.0 in netobserv-os deps (#97)
+
+[netobserv-os-0.2.0..netobserv-os-0.3.0](https://github.com/elastiflow/helm-chart-netobserv/compare/netobserv-os-0.2.0...netobserv-os-0.3.0)
+
+
+
 ## [netobserv-os-0.2.0] - 2025-10-17
 
 ### Features
