@@ -332,8 +332,8 @@ resources:
 
 startupProbe:
   enabled: true
-  initialDelaySeconds: 120
-  failureThreshold: 10
+  initialDelaySeconds: 30
+  failureThreshold: 20
   httpGet:
     path: /readyz
     port: 8080
