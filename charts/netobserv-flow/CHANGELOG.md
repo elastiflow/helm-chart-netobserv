@@ -1,3 +1,16 @@
+## [netobserv-flow-0.4.0] - 2025-10-28
+
+### Bug Fixes
+
+- **helm:** Tweak "startupProbe" (#100)
+### Features
+
+- Bump netobserv-flow chart to 0.3.0 in netobserv-os deps (#97)
+
+[netobserv-flow-0.3.0..netobserv-flow-0.4.0](https://github.com/elastiflow/helm-chart-netobserv/compare/netobserv-flow-0.3.0...netobserv-flow-0.4.0)
+
+
+
 ## [netobserv-flow-0.3.0] - 2025-10-20
 
 ### Features
