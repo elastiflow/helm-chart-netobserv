@@ -1,3 +1,13 @@
+## [netobserv-flow-0.5.0] - 2025-11-04
+
+### Features
+
+- Bump version to 7.19.0 (#103)
+
+[netobserv-flow-0.4.0..netobserv-flow-0.5.0](https://github.com/elastiflow/helm-chart-netobserv/compare/netobserv-flow-0.4.0...netobserv-flow-0.5.0)
+
+
+
 ## [netobserv-flow-0.4.0] - 2025-10-28
 
 ### Bug Fixes
