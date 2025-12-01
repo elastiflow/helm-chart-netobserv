@@ -54,7 +54,7 @@ jobs:
             helm dependency build ${chart}
           done
       - name: Set up chart-testing
-        uses: helm/chart-testing-action@v2.7.0
+        uses: helm/chart-testing-action@v2.8.0
         with:
           yamale_version: "6.0.0"
       - name: Run chart-testing (list-changed)
