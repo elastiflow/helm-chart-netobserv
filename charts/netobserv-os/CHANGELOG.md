@@ -1,3 +1,13 @@
+## [netobserv-os-0.4.0] - 2025-12-12
+
+### Features
+
+- Update stack 0.6.0 (#118)
+
+[netobserv-os-0.3.1..netobserv-os-0.4.0](https://github.com/elastiflow/helm-chart-netobserv/compare/netobserv-os-0.3.1...netobserv-os-0.4.0)
+
+
+
 ## [netobserv-os-0.3.1] - 2025-11-07
 
 ### Bug Fixes
