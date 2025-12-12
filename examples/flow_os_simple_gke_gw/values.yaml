@@ -7,6 +7,18 @@ netobserv-flow:
       value: "true"
     - name: EF_OUTPUT_OPENSEARCH_INDEX_TEMPLATE_REPLICAS
       value: "0"
+    - name: EF_INPUT_OTLP_TRACE_GRPC_ENABLE
+      value: "true"
+    - name: EF_INPUT_OTLP_TRACE_GRPC_SERVER_TLS_ENABLE
+      value: "true"
+    - name: EF_INPUT_OTLP_TRACE_GRPC_SERVER_TLS_CERT_FILE
+      value: "/etc/ssl/netobserv/tls.crt"
+    - name: EF_INPUT_OTLP_TRACE_GRPC_SERVER_TLS_KEY_FILE
+      value: "/etc/ssl/netobserv/tls.key"
+    - name: EF_INPUT_OTLP_HEALTH_GRPC_ENABLE
+      value: "true"
+    - name: EF_INPUT_OTLP_HEALTH_GRPC_ADDR_PORT
+      value: "4316"
     - name: EF_INPUT_FLOW_BENCHMARK_ENABLE
       value: "false" # `false` is the default, keeping for ease of updating for testing
     - name: EF_OUTPUT_STDOUT_ENABLE
@@ -52,47 +64,122 @@ netobserv-flow:
         matchExpressions:
           - key: app.kubernetes.io/name
             operator: In
-            values: [opensearch, netobserv]
+            values: [opensearch]
+
+  ports:
+    - name: api
+      containerPort: 8080
+      protocol: TCP
+    - name: otlp-grpc-hlth
+      containerPort: 4316
+      protocol: TCP
+    - name: otlp-grpc
+      containerPort: 4317
+      protocol: TCP
 
   service:
-    annotations:
-      cloud.google.com/neg: '{"ingress": true}'
-      cloud.google.com/app-protocols: '{"api":"HTTP"}'
     ports:
-      - port: 8080
+      - name: api
+        port: 8080
         targetPort: 8080
+        appProtocol: HTTP
+      - name: otlp-grpc
         protocol: TCP
-        name: api
+        port: 4317
+        targetPort: 4317
+        appProtocol: HTTP2
 
-  # TODO: Test ingress
-  # ingress:
-  #   enabled: true
-  #   annotations:
-  #     kubernetes.io/ingress.class: "gce-internal"
-  #   rules:
-  #     - host: your-store.example
-  #       http:
-  #         paths:
-  #         - path: /products
-  #           backend:
-  #             service:
-  #               name: netobserv
-  #               port:
-  #                 name: api
+  gateway:
+    enabled: true
+    className: gke-l7-rilb
+    listeners:
+      - name: https
+        protocol: HTTPS
+        port: 443
+        tls:
+          mode: Terminate
+          certificateRefs:
+            - kind: Secret
+              group: ""
+              name: netobserv-tls
+        allowedRoutes:
+          kinds:
+            - kind: HTTPRoute
+
+    httpRoutes:
+      - name: main
+        rules:
+          - backendRefs:
+                - name: '{{ include "netobserv.fullname" $ }}'
+                  port: 8080
+          - matches:
+              - headers:
+                  - name: "content-type"
+                    value: "application/grpc"
+            backendRefs:
+              - name: '{{ include "netobserv.fullname" $ }}'
+                port: 4317
 
   outputOpenSearch:
     enable: true
-    addresses: opensearch-cluster-master.elastiflow.svc.gke-main-a.us-east1:9200
+    addresses: opensearch-cluster-master.elastiflow.svc:9200
     password: Elast1flow! # Insecure
     tls:
       enable: true
       skipVerification: true
-
     dashboards:
       provision: true
-      dashboards_url: http://elastiflow-os-dashboards.elastiflow.svc.gke-main-a.us-east1:5601
+      dashboards_url: http://elastiflow-os-dashboards.elastiflow.svc:5601
+
+  extraVolumes:
+    - name: netobserv-tls
+      secret:
+        secretName: netobserv-tls
+  extraVolumeMounts:
+    - name: netobserv-tls
+      mountPath: /etc/ssl/netobserv/
 
   extraObjects:
+    # Needed by GKE Gateway controller to tweak healthchecks
+    - |
+      apiVersion: networking.gke.io/v1
+      kind: HealthCheckPolicy
+      metadata:
+        name: '{{ include "netobserv.fullname" . }}-api'
+        labels:
+          {{- include "netobserv.labels" . | nindent 4 }}
+      spec:
+        default:
+          healthyThreshold: 2
+          unhealthyThreshold: 3
+          config:
+            type: HTTP
+            httpHealthCheck:
+              portSpecification: USE_FIXED_PORT
+              port: 8080
+              requestPath: /readyz
+        # Attach to a Service in the cluster.
+        targetRef:
+          group: ""
+          kind: Service
+          name: '{{ include "netobserv.fullname" . }}'
+    # Needed by GKE Gateway controller to disable logging
+    - |
+      apiVersion: networking.gke.io/v1
+      kind: GCPBackendPolicy
+      metadata:
+        name: '{{ include "netobserv.fullname" . }}'
+        labels:
+          {{- include "netobserv.labels" . | nindent 4 }}
+      spec:
+        default:
+          logging:
+            enabled: false
+        # Attach to a Service in the cluster.
+        targetRef:
+          group: ""
+          kind: Service
+          name: '{{ include "netobserv.fullname" . }}'
     - |
       apiVersion: v1
       kind: Secret
@@ -127,8 +214,8 @@ opensearch:
       enabled: true
 
   extraEnvs:
-  - name: OPENSEARCH_INITIAL_ADMIN_PASSWORD
-    value: Elast1flow! # Insecure
+    - name: OPENSEARCH_INITIAL_ADMIN_PASSWORD
+      value: Elast1flow! # Insecure
 
   tolerations:
     - key: k8s.elastiflow.io/role
@@ -157,7 +244,7 @@ opensearch:
 opensearch-dashboards:
   enabled: true
   fullnameOverride: elastiflow-os-dashboards
-  opensearchHosts: https://opensearch-cluster-master.elastiflow.svc.gke-main-a.us-east1:9200
+  opensearchHosts: https://opensearch-cluster-master.elastiflow.svc:9200
   resources:
     requests:
       cpu: "1000m"
@@ -227,6 +314,7 @@ opensearch-dashboards:
             {{- toYaml . | nindent 4 }}
           {{- end }}
         annotations:
+          # GKE still use the annotation: https://cloud.google.com/kubernetes-engine/docs/concepts/ingress#deprecated_annotation
           kubernetes.io/ingress.class: "gce-internal"
       spec:
         defaultBackend:
@@ -234,14 +322,3 @@ opensearch-dashboards:
             name: '{{ template "opensearch-dashboards.fullname" . }}'
             port:
               number: {{ .Values.service.port }}
-        rules:
-          - host: "chart-example.local"
-            http:
-              paths:
-                - path: /
-                  pathType: Prefix
-                  backend:
-                    service:
-                      name: '{{ template "opensearch-dashboards.fullname" . }}'
-                      port:
-                        number: {{ .Values.service.port }}

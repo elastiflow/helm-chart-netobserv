@@ -1,0 +1,321 @@
+netobserv-flow:
+  enabled: true
+  fullnameOverride: netobserv-flow
+
+  env:
+    - name: EF_LICENSE_ACCEPTED
+      value: "true"
+    - name: EF_OUTPUT_OPENSEARCH_INDEX_TEMPLATE_REPLICAS
+      value: "0"
+    - name: EF_INPUT_OTLP_TRACE_GRPC_ENABLE
+      value: "true"
+    - name: EF_INPUT_OTLP_TRACE_GRPC_SERVER_TLS_ENABLE
+      value: "true"
+    - name: EF_INPUT_OTLP_TRACE_GRPC_SERVER_TLS_CERT_FILE
+      value: "/etc/ssl/netobserv/tls.crt"
+    - name: EF_INPUT_OTLP_TRACE_GRPC_SERVER_TLS_KEY_FILE
+      value: "/etc/ssl/netobserv/tls.key"
+    - name: EF_INPUT_OTLP_HEALTH_GRPC_ENABLE
+      value: "true"
+    - name: EF_INPUT_OTLP_HEALTH_GRPC_ADDR_PORT
+      value: "4316"
+    - name: EF_INPUT_FLOW_BENCHMARK_ENABLE
+      value: "false" # `false` is the default, keeping for ease of updating for testing
+    - name: EF_OUTPUT_STDOUT_ENABLE
+      value: "false" # `false` is the default, keeping for ease of updating for testing
+
+  autoscaling:
+    enabled: true
+    minReplicas: 1
+    maxReplicas: 1
+
+  tolerations:
+    - key: k8s.elastiflow.io/role
+      operator: Equal
+      value: elastiflow-spot
+    - key: cloud.google.com/gke-spot
+      operator: Equal
+      value: "true"
+
+  affinity:
+    nodeAffinity:
+      requiredDuringSchedulingIgnoredDuringExecution:
+        nodeSelectorTerms:
+          - matchExpressions:
+              - key: k8s.elastiflow.io/role
+                operator: In
+                values:
+                  - elastiflow-spot
+              - key: "cloud.google.com/machine-family"
+                operator: "In"
+                values: ["e2"]
+              - key: "node.kubernetes.io/instance-type"
+                operator: "In"
+                # https://cloud.google.com/compute/vm-instance-pricing
+                values: ["e2-standard-2", "e2-standard-4"]
+
+  # Discourage to colocate the collector with opensearch
+  topologySpreadConstraints:
+    - maxSkew: 1
+      minDomains: 2
+      topologyKey: kubernetes.io/hostname
+      whenUnsatisfiable: DoNotSchedule
+      labelSelector:
+        matchExpressions:
+          - key: app.kubernetes.io/name
+            operator: In
+            values: [opensearch]
+
+  ports:
+    - name: api
+      containerPort: 8080
+      protocol: TCP
+    - name: otlp-grpc-hlth
+      containerPort: 4316
+      protocol: TCP
+    - name: otlp-grpc
+      containerPort: 4317
+      protocol: TCP
+
+  service:
+    annotations:
+      cloud.google.com/neg: '{"ingress": true}'
+      cloud.google.com/app-protocols: '{"api":"HTTP", "otlp-grpc":"HTTP2"}'
+      cloud.google.com/backend-config: '{"default": "netobserv"}'
+    ports:
+      - name: api
+        protocol: TCP
+        port: 8080
+        targetPort: 8080
+      - name: otlp-grpc
+        protocol: TCP
+        port: 4317
+        targetPort: 4317
+
+  ingress:
+    enabled: true
+    annotations:
+      kubernetes.io/ingress.allow-http: "false"
+      # GKE still use the annotation: https://cloud.google.com/kubernetes-engine/docs/concepts/ingress#deprecated_annotation
+      kubernetes.io/ingress.class: "gce-internal"
+    tls:
+      - secretName: netobserv-tls
+    defaultBackend:
+      service:
+        port:
+          name: otlp-grpc
+    hosts:
+      - # host: chart-example.local # Uncomment if you have a DNS name for the ingress (Load Balancer)
+        paths:
+          - path: /readyz
+            pathType: ImplementationSpecific
+            backend:
+              service:
+                port:
+                  name: api
+          - path: /api*
+            pathType: ImplementationSpecific
+            backend:
+              service:
+                port:
+                  name: api
+          - path: /grpc.reflection.v1.ServerReflection
+            pathType: ImplementationSpecific
+            backend:
+              service:
+                port:
+                  name: otlp-grpc
+          - path: /grpc.reflection.v1alpha.ServerReflection
+            pathType: ImplementationSpecific
+            backend:
+              service:
+                port:
+                  name: otlp-grpc
+          - path: /opentelemetry.proto.collector.trace.v1.TraceService
+            pathType: ImplementationSpecific
+            backend:
+              service:
+                port:
+                  name: otlp-grpc
+
+  outputOpenSearch:
+    enable: true
+    addresses: opensearch-cluster-master.elastiflow.svc:9200
+    password: Elast1flow! # Insecure
+    tls:
+      enable: true
+      skipVerification: true
+    dashboards:
+      provision: true
+      dashboards_url: http://elastiflow-os-dashboards.elastiflow.svc:5601
+
+  extraVolumes:
+    - name: netobserv-tls
+      secret:
+        secretName: netobserv-tls
+  extraVolumeMounts:
+    - name: netobserv-tls
+      mountPath: /etc/ssl/netobserv/
+
+  extraObjects:
+    # Needed by GKE Ingress controller
+    - |
+      apiVersion: cloud.google.com/v1
+      kind: BackendConfig
+      metadata:
+        name: 'netobserv'
+        labels:
+          {{- include "netobserv.labels" . | nindent 4 }}
+      spec:
+        logging:
+          enable: true
+        # https://cloud.google.com/kubernetes-engine/docs/how-to/ingress-configuration#direct_health
+        healthCheck:
+          checkIntervalSec: 60
+          unhealthyThreshold: 2
+          healthyThreshold: 3
+          port: 8080
+          type: HTTP
+          requestPath: /readyz
+    - |
+      apiVersion: v1
+      kind: Secret
+      metadata:
+        name: netobserv-tls
+        labels:
+          {{- include "netobserv.labels" . | nindent 4 }}
+      type: kubernetes.io/tls
+      data:
+        tls.crt: {{ .Files.Get "tls/netobserv.crt" | b64enc }}
+        tls.key: {{ .Files.Get "tls/netobserv.key" | b64enc }}
+
+opensearch:
+  enabled: true
+  clusterName: elastiflow
+  fullnameOverride: "elastiflow-os"
+  singleNode: true
+  replicas: 1
+  opensearchJavaOpts: "-Xmx15500M -Xmx15500M"
+  resources:
+    requests:
+      cpu: "6"
+      memory: 16384Mi
+    limits:
+      cpu: "6"
+      memory: 16384Mi
+
+  persistence:
+    storageClass: standard-rwo
+    size: 50Gi
+    labels:
+      enabled: true
+
+  extraEnvs:
+    - name: OPENSEARCH_INITIAL_ADMIN_PASSWORD
+      value: Elast1flow! # Insecure
+
+  tolerations:
+    - key: k8s.elastiflow.io/role
+      operator: Equal
+      value: elastiflow-spot
+    - key: cloud.google.com/gke-spot
+      operator: Equal
+      value: "true"
+
+  nodeAffinity:
+    requiredDuringSchedulingIgnoredDuringExecution:
+      nodeSelectorTerms:
+        - matchExpressions:
+            - key: k8s.elastiflow.io/role
+              operator: In
+              values:
+                - elastiflow-spot
+            - key: "cloud.google.com/machine-family"
+              operator: "In"
+              values: ["e2"]
+            - key: "node.kubernetes.io/instance-type"
+              operator: "In"
+              # https://cloud.google.com/compute/vm-instance-pricing
+              values: ["e2-standard-2", "e2-standard-4", "e2-standard-8"]
+
+opensearch-dashboards:
+  enabled: true
+  fullnameOverride: elastiflow-os-dashboards
+  opensearchHosts: https://opensearch-cluster-master.elastiflow:9200
+  resources:
+    requests:
+      cpu: "1000m"
+      memory: "768M"
+    limits:
+      cpu: "1000m"
+      memory: "768M"
+
+  config:
+    ssl:
+      verificationMode: none
+
+  tolerations:
+    - key: k8s.elastiflow.io/role
+      operator: Equal
+      value: elastiflow-spot
+    - key: cloud.google.com/gke-spot
+      operator: Equal
+      value: "true"
+
+  affinity:
+    nodeAffinity:
+      requiredDuringSchedulingIgnoredDuringExecution:
+        nodeSelectorTerms:
+          - matchExpressions:
+              - key: k8s.elastiflow.io/role
+                operator: In
+                values:
+                  - elastiflow-spot
+              - key: "cloud.google.com/machine-family"
+                operator: "In"
+                values: ["e2"]
+              - key: "node.kubernetes.io/instance-type"
+                operator: "In"
+                # https://cloud.google.com/compute/vm-instance-pricing
+                values: ["e2-standard-2", "e2-standard-4", "e2-standard-8"]
+
+  service:
+    annotations:
+      cloud.google.com/neg: '{"ingress": true}'
+      cloud.google.com/app-protocols: '{"http":"HTTP"}'
+      cloud.google.com/backend-config: '{"default": "elastiflow-os-dashboards"}'
+
+  extraObjects:
+    # https://cloud.google.com/kubernetes-engine/docs/how-to/ingress-configuration#direct_health
+    - apiVersion: cloud.google.com/v1
+      kind: BackendConfig
+      metadata:
+        name: '{{ template "opensearch-dashboards.fullname" . }}'
+      spec:
+        healthCheck:
+          checkIntervalSec: 60
+          unhealthyThreshold: 2
+          healthyThreshold: 3
+          port: 5601
+          type: HTTP
+          requestPath: /app/login
+    # Adding ingress as extraObjects due to the lack of the `defaultBackend` in the original OpenSearch chart
+    - |
+      apiVersion: networking.k8s.io/v1
+      kind: Ingress
+      metadata:
+        name: {{ template "opensearch-dashboards.fullname" . }}
+        labels:
+          {{- include "opensearch-dashboards.labels" . | nindent 4 }}
+          {{- with .Values.ingress.labels }}
+            {{- toYaml . | nindent 4 }}
+          {{- end }}
+        annotations:
+          # GKE still use the annotation: https://cloud.google.com/kubernetes-engine/docs/concepts/ingress#deprecated_annotation
+          kubernetes.io/ingress.class: "gce-internal"
+      spec:
+        defaultBackend:
+          service:
+            name: '{{ template "opensearch-dashboards.fullname" . }}'
+            port:
+              number: {{ .Values.service.port }}
