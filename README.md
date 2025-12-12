@@ -70,8 +70,8 @@ Hint, use `kubectl diff` before upgrade to spot potential issues.
 ```sh
 helm repo update
 rm -rf helm_rendered
-helm template -n elastiflow -f examples/flow_os_simple_gke/values.yaml --output-dir helm_rendered netobserv elastiflow/netobserv --version netobserv-0.5.0
-kubectl diff -R -f helm_rendered/
+helm template -n elastiflow -f ${PATH_TO_VALUES} --output-dir helm_rendered netobserv netobserv/netobserv --version netobserv-0.5.0
+kubectl diff -R -f helm_rendered
 ```
 
 ### License Setup
@@ -86,7 +86,7 @@ license:
 Then make sure to use helm's `set` option to configure the license key when installing the chart. For example:
 
 ```sh
-helm install netobserv elastiflow/netobserv \
+helm install netobserv netobserv/netobserv-flow \
   --set license.licenseKey="licensekeygoeshere"
 ```
 
