@@ -1,6 +1,6 @@
-# NetObserv Flow with OpenSearch
+# NetObserv Flow with OpenSearch using K8s Ingress
 
-- [NetObserv Flow with OpenSearch](#netobserv-flow-with-opensearch)
+- [NetObserv Flow with OpenSearch using K8s Ingress](#netobserv-flow-with-opensearch-using-k8s-ingress)
   - [Overview](#overview)
   - [Install](#install)
   - [Access](#access)
@@ -8,17 +8,24 @@
 
 ## Overview
 
-This example deploys NetObserv Flow with OpenSearch as the data platform in a GCP GKE cluster.  
+This playbook deploys NetObserv Flow with OpenSearch as the data platform in a GCP GKE cluster with API and OTel gRPC inputs exposed.
 This example is intended only for demonstration, testing, or proof-of-concept use, since OpenSearch is deployed in a single-node mode.
 
 Notes on the example deployment:
 
+- This example also assumes you can access internal GCP subnets via a VPN.
+- Namespace used in the example: `elastiflow`.
 - GKE [node auto-provisioning](https://cloud.google.com/kubernetes-engine/docs/how-to/node-auto-provisioning) must be enabled.
-- Namespace used in the example: `elastiflow`
-- A GKE internal load balancer is used for the OpenSearch Dashboard ingress. This example also assumes you can access internal GCP subnets via a VPN.
+- TLS:
+  - GCP Load Balancer (ingress) needs the backend with TLS enabled since OTlp input uses gRPC, so a self-signed certificate is used (validity `Not After : Sep 24 10:48:37 2035 GMT`)
+  - In order to enable gRPC between client and GCP Load Balancer certificate is also required, same self-signed certificate is used.
+  - HTTP (port `80`) is completely disabled on the GCP Load Balancer that is used for the collector (gRPC, REST)
+- A GKE internal load balancer is used for the OpenSearch Dashboard ingress.
 - Spot instances are used, please tweak affinity and tolerations in the `values.yaml` if needed.
 
 ## Install
+
+Change `gke-main-a.us-east1` in the `values.yaml` to your Kubernetes Default Domain (`cluster.local` by default)
 
 ```sh
 helm repo add netobserv https://elastiflow.github.io/helm-chart-netobserv/
