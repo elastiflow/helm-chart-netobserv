@@ -3,7 +3,7 @@ name: netobserv-flow
 description: ElastiFlow NetObserv Flow Collector
 type: application
 version: 0.5.3
-appVersion: 7.19.3
+appVersion: 7.20.0
 icon: https://artifacthub.io/image/a7c44004-9982-4ba1-a4c9-c626340d3d38@2x
 sources:
   - https://github.com/elastiflow/helm-chart-netobserv
