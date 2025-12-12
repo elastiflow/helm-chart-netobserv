@@ -78,65 +78,47 @@ netobserv-flow:
       protocol: TCP
 
   service:
-    annotations:
-      cloud.google.com/neg: '{"ingress": true}'
-      cloud.google.com/app-protocols: '{"api":"HTTP", "otlp-grpc":"HTTP2"}'
-      cloud.google.com/backend-config: '{"default": "netobserv"}'
     ports:
       - name: api
-        protocol: TCP
         port: 8080
         targetPort: 8080
+        appProtocol: HTTP
       - name: otlp-grpc
         protocol: TCP
         port: 4317
         targetPort: 4317
+        appProtocol: HTTP2
 
-  ingress:
+  gateway:
     enabled: true
-    annotations:
-      kubernetes.io/ingress.allow-http: "false"
-      # GKE still use the annotation: https://cloud.google.com/kubernetes-engine/docs/concepts/ingress#deprecated_annotation
-      kubernetes.io/ingress.class: "gce-internal"
-    tls:
-      - secretName: netobserv-tls
-    defaultBackend:
-      service:
-        port:
-          name: otlp-grpc
-    hosts:
-      - # host: chart-example.local # Uncomment if you have a DNS name for the ingress (Load Balancer)
-        paths:
-          - path: /readyz
-            pathType: ImplementationSpecific
-            backend:
-              service:
-                port:
-                  name: api
-          - path: /api*
-            pathType: ImplementationSpecific
-            backend:
-              service:
-                port:
-                  name: api
-          - path: /grpc.reflection.v1.ServerReflection
-            pathType: ImplementationSpecific
-            backend:
-              service:
-                port:
-                  name: otlp-grpc
-          - path: /grpc.reflection.v1alpha.ServerReflection
-            pathType: ImplementationSpecific
-            backend:
-              service:
-                port:
-                  name: otlp-grpc
-          - path: /opentelemetry.proto.collector.trace.v1.TraceService
-            pathType: ImplementationSpecific
-            backend:
-              service:
-                port:
-                  name: otlp-grpc
+    className: gke-l7-rilb
+    listeners:
+      - name: https
+        protocol: HTTPS
+        port: 443
+        tls:
+          mode: Terminate
+          certificateRefs:
+            - kind: Secret
+              group: ""
+              name: netobserv-tls
+        allowedRoutes:
+          kinds:
+            - kind: HTTPRoute
+
+    httpRoutes:
+      - name: main
+        rules:
+          - backendRefs:
+                - name: '{{ include "netobserv.fullname" $ }}'
+                  port: 8080
+          - matches:
+              - headers:
+                  - name: "content-type"
+                    value: "application/grpc"
+            backendRefs:
+              - name: '{{ include "netobserv.fullname" $ }}'
+                port: 4317
 
   outputOpenSearch:
     enable: true
@@ -158,25 +140,46 @@ netobserv-flow:
       mountPath: /etc/ssl/netobserv/
 
   extraObjects:
-    # Needed by GKE Ingress controller
+    # Needed by GKE Gateway controller to tweak healthchecks
     - |
-      apiVersion: cloud.google.com/v1
-      kind: BackendConfig
+      apiVersion: networking.gke.io/v1
+      kind: HealthCheckPolicy
       metadata:
-        name: 'netobserv'
+        name: '{{ include "netobserv.fullname" . }}-api'
         labels:
           {{- include "netobserv.labels" . | nindent 4 }}
       spec:
-        logging:
-          enable: true
-        # https://cloud.google.com/kubernetes-engine/docs/how-to/ingress-configuration#direct_health
-        healthCheck:
-          checkIntervalSec: 60
-          unhealthyThreshold: 2
-          healthyThreshold: 3
-          port: 8080
-          type: HTTP
-          requestPath: /readyz
+        default:
+          healthyThreshold: 2
+          unhealthyThreshold: 3
+          config:
+            type: HTTP
+            httpHealthCheck:
+              portSpecification: USE_FIXED_PORT
+              port: 8080
+              requestPath: /readyz
+        # Attach to a Service in the cluster.
+        targetRef:
+          group: ""
+          kind: Service
+          name: '{{ include "netobserv.fullname" . }}'
+    # Needed by GKE Gateway controller to disable logging
+    - |
+      apiVersion: networking.gke.io/v1
+      kind: GCPBackendPolicy
+      metadata:
+        name: '{{ include "netobserv.fullname" . }}'
+        labels:
+          {{- include "netobserv.labels" . | nindent 4 }}
+      spec:
+        default:
+          logging:
+            enabled: false
+        # Attach to a Service in the cluster.
+        targetRef:
+          group: ""
+          kind: Service
+          name: '{{ include "netobserv.fullname" . }}'
     - |
       apiVersion: v1
       kind: Secret
@@ -241,7 +244,7 @@ opensearch:
 opensearch-dashboards:
   enabled: true
   fullnameOverride: elastiflow-os-dashboards
-  opensearchHosts: https://opensearch-cluster-master.elastiflow:9200
+  opensearchHosts: https://opensearch-cluster-master.elastiflow.svc:9200
   resources:
     requests:
       cpu: "1000m"
