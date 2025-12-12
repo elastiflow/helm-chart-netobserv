@@ -1,4 +1,4 @@
-# NetObserv Flow with OpenSearch using K8s Gateway
+# NetObserv Flow with OpenSearch using K8s (GKE) Gateway
 
 - [NetObserv Flow with OpenSearch using K8s Gateway](#netobserv-flow-with-opensearch-using-k8s-gateway)
   - [Overview](#overview)

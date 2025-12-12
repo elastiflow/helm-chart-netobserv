@@ -1,6 +1,6 @@
-# NetObserv Flow with OpenSearch using K8s Ingress
+# NetObserv Flow with OpenSearch using K8s (GKE) Ingress
 
-- [NetObserv Flow with OpenSearch using K8s Ingress](#netobserv-flow-with-opensearch-using-k8s-ingress)
+- [NetObserv Flow with OpenSearch using K8s (GKE) Ingress](#netobserv-flow-with-opensearch-using-k8s-gke-ingress)
   - [Overview](#overview)
   - [Install](#install)
   - [Access Dashboards](#access-dashboards)
