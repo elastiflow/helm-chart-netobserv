@@ -1,0 +1,5 @@
+env:
+  - name: EF_LICENSE_ACCEPTED
+    value: "true"
+  - name: EF_OUTPUT_STDOUT_ENABLE
+    value: "false" # `false` is the default, keeping for ease of updating for testing
