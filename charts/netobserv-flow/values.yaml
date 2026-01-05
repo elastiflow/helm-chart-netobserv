@@ -17,7 +17,7 @@ image:
 
 env:
   - name: EF_LICENSE_ACCEPTED
-    value: 'true'
+    value: 'false'
   # Additional information for available environment variables can be found via
   # the ElastiFlow documentation: https://docs.elastiflow.com/docs/config_ref
 
