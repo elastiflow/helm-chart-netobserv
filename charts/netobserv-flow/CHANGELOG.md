@@ -1,3 +1,13 @@
+## [netobserv-flow-0.7.0] - 2026-01-07
+
+### Features
+
+- Remove  values key (breaking) (#121)
+
+[netobserv-flow-0.6.0..netobserv-flow-0.7.0](https://github.com/elastiflow/helm-chart-netobserv/compare/netobserv-flow-0.6.0...netobserv-flow-0.7.0)
+
+
+
 ## [netobserv-flow-0.6.0] - 2025-12-12
 
 ### Features
