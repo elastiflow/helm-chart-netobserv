@@ -19,10 +19,10 @@ env:
   - name: EF_LICENSE_ACCEPTED
     value: 'false'
   # Additional information for available environment variables can be found via
-  # the ElastiFlow documentation: https://docs.elastiflow.com/docs/config_ref
+  # the ElastiFlow documentation: https://docs.elastiflow.com/flowcoll/configuration
 
 # The ElasticSearch output can be used to send records to an ElasticSearch cluster.
-# https://docs.elastiflow.com/docs/config_ref/common/output_elasticsearch
+# https://docs.elastiflow.com/flowcoll/configuration/outputs/output_elasticsearch
 outputElasticSearch:
   # Enable/disable the use of the ElasticSearch output.
   enable: false
@@ -49,15 +49,15 @@ outputElasticSearch:
     # The key in the config map that contains the CA certificate.
     caConfigMapKey: "ca.crt"
     # The path to the CA certificate file.
-    caMountPath: ""
+    caMountPath: "/etc/ssl/certs"
     # The name of the file that contains the CA certificate.
-    caFileName: "ca.crt"
+    caFileName: "ca-ef-es.crt"
   ecs:
     # Enable/disable the use of the Elastic Common Schema (ECS).
     enable: false
 
   # Provision or not the ElasticSearch Kibana dashboards in the ElasticSearch cluster
-  # https://www.elastiflow.com/docs/data_platforms/elastic/kibana/
+  # https://docs.elastiflow.com/flowcoll/configuration/outputs/output_elasticsearch
   # Uses ElasticSearch username/password from the secret
   dashboards:
     provision: false
@@ -68,7 +68,7 @@ outputElasticSearch:
       validate_certs: false
 
 # The OpenSearch output can be used to send records to an OpenSearch cluster.
-# https://docs.elastiflow.com/docs/config_ref/common/output_opensearch
+# https://docs.elastiflow.com/flowcoll/configuration/outputs/output_opensearch
 outputOpenSearch:
   # Enable/disable the use of the OpenSearch output.
   enable: false
@@ -95,15 +95,15 @@ outputOpenSearch:
     # The key in the config map that contains the CA certificate.
     caConfigMapKey: "ca.crt"
     # The path to the CA certificate file.
-    caMountPath: ""
-    # The name of the file that contains the CA certificate.
-    caFileName: "ca.crt"
+    caMountPath: "/etc/ssl/certs"
+    # The name of the file that contains the CA certificate ().
+    caFileName: "ca-ef-os.crt"
   ecs:
     # Enable/disable the use of the Elastic Common Schema (ECS).
     enable: false
 
   # Provision or not the OpenSearch Dashboards dashboards in the OpenSearch cluster
-  # https://www.elastiflow.com/docs/data_platforms/opensearch/dashboards/
+  # https://docs.elastiflow.com/flowcoll/configuration/outputs/output_opensearch
   # Uses OpenSearch username/password from the secret
   dashboards:
     provision: false
@@ -114,27 +114,6 @@ outputOpenSearch:
     override: false
     tls:
       validate_certs: false
-
-# The Kafka output can be used to send records to Apache Kafka, Confluent Platform,
-# Confluent Cloud, Redpanda and Amazon Managed Streaming for Apache Kafka (Amazon MSK).
-# https://docs.elastiflow.com/docs/output-kafka
-outputKafka:
-  # Enable/disable the use of the Kafka output.
-  enable: false
-  # A comma-separated list of brokers, IP address and port number, to which the collector is to connect.
-  # Example: "192.0.2.11:9092,192.0.2.12:9092,192.0.2.13:9092"
-  brokers: ""
-  tls:
-    # Enable/disable TLS connections to Kafka.
-    enable: false
-    # The name of the config map that contains the CA certificate. If empty, will not be mounted.
-    caConfigMapName: ""
-    # The key in the config map that contains the CA certificate.
-    caConfigMapKey: "ca.crt"
-    # The path to the CA certificate file.
-    caMountPath: ""
-    # The name of the file that contains the CA certificate.
-    caFileName: "ca.crt"
 
 license:
   # Specifies whether a secret should be created. If you don't have a license, no need to create a license secret.
@@ -496,11 +475,3 @@ extraObjects: []
   #       port: 5601
   #       type: HTTP
   #       requestPath: /app/login
-
-# OpenSearch chart values (installed as a dependency)
-opensearch:
-  enabled: false
-
-# OpenSearch Dashboards chart values (installed as a dependency)
-opensearch-dashboards:
-  enabled: false

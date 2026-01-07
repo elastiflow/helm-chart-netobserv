@@ -69,7 +69,6 @@ Create the name of the service account to use
   {{- or
     .Values.maxmind.asnEnabled
     .Values.maxmind.geoipEnabled
-    (and .Values.outputKafka.tls.enable (not (eq .Values.outputKafka.tls.caConfigMapName "")))
     (and .Values.outputElasticSearch.tls.enable (not (eq .Values.outputElasticSearch.tls.caConfigMapName "")))
     (and .Values.outputOpenSearch.tls.enable (not (eq .Values.outputOpenSearch.tls.caConfigMapName "")))
     (not (empty .Values.extraVolumes))
@@ -81,7 +80,6 @@ Create the name of the service account to use
   {{- or
     .Values.maxmind.asnEnabled
     .Values.maxmind.geoipEnabled
-    (and .Values.outputKafka.tls.enable (not (eq .Values.outputKafka.tls.caConfigMapName "")))
     (and .Values.outputElasticSearch.tls.enable (not (eq .Values.outputElasticSearch.tls.caConfigMapName "")))
     (and .Values.outputOpenSearch.tls.enable (not (eq .Values.outputOpenSearch.tls.caConfigMapName "")))
     (not (empty .Values.extraVolumeMounts))
