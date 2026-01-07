@@ -51,7 +51,7 @@ helm install netobserv netobserv/netobserv \
 
 For additional kubernetes configuration information, please refer to the comments in the [default values file](./charts/netobserv/values.yaml).
 
-For additional environment configurations, please refer to the [configuration reference guide](https://docs.elastiflow.com/docs/config_ref/).
+For additional environment configurations, please refer to the [configuration reference guide](https://docs.elastiflow.com/flowcoll/configuration).
 
 ### Prometheus Operator ServiceMonitor
 

@@ -19,10 +19,10 @@ env:
   - name: EF_LICENSE_ACCEPTED
     value: 'false'
   # Additional information for available environment variables can be found via
-  # the ElastiFlow documentation: https://docs.elastiflow.com/docs/config_ref
+  # the ElastiFlow documentation: https://docs.elastiflow.com/flowcoll/configuration
 
 # The ElasticSearch output can be used to send records to an ElasticSearch cluster.
-# https://docs.elastiflow.com/docs/config_ref/common/output_elasticsearch
+# https://docs.elastiflow.com/flowcoll/configuration/outputs/output_elasticsearch
 outputElasticSearch:
   # Enable/disable the use of the ElasticSearch output.
   enable: false
@@ -57,7 +57,7 @@ outputElasticSearch:
     enable: false
 
   # Provision or not the ElasticSearch Kibana dashboards in the ElasticSearch cluster
-  # https://www.elastiflow.com/docs/data_platforms/elastic/kibana/
+  # https://docs.elastiflow.com/flowcoll/configuration/outputs/output_elasticsearch
   # Uses ElasticSearch username/password from the secret
   dashboards:
     provision: false
@@ -68,7 +68,7 @@ outputElasticSearch:
       validate_certs: false
 
 # The OpenSearch output can be used to send records to an OpenSearch cluster.
-# https://docs.elastiflow.com/docs/config_ref/common/output_opensearch
+# https://docs.elastiflow.com/flowcoll/configuration/outputs/output_opensearch
 outputOpenSearch:
   # Enable/disable the use of the OpenSearch output.
   enable: false
@@ -103,7 +103,7 @@ outputOpenSearch:
     enable: false
 
   # Provision or not the OpenSearch Dashboards dashboards in the OpenSearch cluster
-  # https://www.elastiflow.com/docs/data_platforms/opensearch/dashboards/
+  # https://docs.elastiflow.com/flowcoll/configuration/outputs/output_opensearch
   # Uses OpenSearch username/password from the secret
   dashboards:
     provision: false
