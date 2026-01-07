@@ -49,9 +49,9 @@ outputElasticSearch:
     # The key in the config map that contains the CA certificate.
     caConfigMapKey: "ca.crt"
     # The path to the CA certificate file.
-    caMountPath: ""
+    caMountPath: "/etc/ssl/certs"
     # The name of the file that contains the CA certificate.
-    caFileName: "ca.crt"
+    caFileName: "ca-ef-es.crt"
   ecs:
     # Enable/disable the use of the Elastic Common Schema (ECS).
     enable: false
@@ -95,9 +95,9 @@ outputOpenSearch:
     # The key in the config map that contains the CA certificate.
     caConfigMapKey: "ca.crt"
     # The path to the CA certificate file.
-    caMountPath: ""
+    caMountPath: "/etc/ssl/certs"
     # The name of the file that contains the CA certificate ().
-    caFileName: "ca.crt"
+    caFileName: "ca-ef-os.crt"
   ecs:
     # Enable/disable the use of the Elastic Common Schema (ECS).
     enable: false
