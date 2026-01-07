@@ -77,7 +77,6 @@ kubectl diff -R -f helm_rendered
 
 ### `netobserv-flow-0.6.0` -> `netobserv-flow-0.7.x` notes
 
-- Each `caMountPath` values key was renamed to `caDirName`.
 - `outputKafka` values key was removed in order to better align with the existing Ansible Role variables specification ([ref](https://github.com/elastiflow/ansible-collection-netobserv/tree/v0.5.0/roles/netobserv_flow)).
 
   <details>

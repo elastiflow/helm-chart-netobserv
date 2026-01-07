@@ -49,7 +49,7 @@ outputElasticSearch:
     # The key in the config map that contains the CA certificate.
     caConfigMapKey: "ca.crt"
     # The path to the CA certificate file.
-    caDirName: ""
+    caMountPath: ""
     # The name of the file that contains the CA certificate.
     caFileName: "ca.crt"
   ecs:
@@ -95,7 +95,7 @@ outputOpenSearch:
     # The key in the config map that contains the CA certificate.
     caConfigMapKey: "ca.crt"
     # The path to the CA certificate file.
-    caDirName: ""
+    caMountPath: ""
     # The name of the file that contains the CA certificate ().
     caFileName: "ca.crt"
   ecs:

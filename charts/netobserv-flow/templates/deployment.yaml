@@ -102,7 +102,7 @@ spec:
               value: {{ .Values.outputElasticSearch.tls.skipVerification | quote }}
             {{- if and .Values.outputElasticSearch.tls.enable (not (eq .Values.outputElasticSearch.tls.caConfigMapName "")) }}
             - name: "EF_OUTPUT_ELASTICSEARCH_TLS_CA_CERT_FILEPATH"
-              value: "{{ .Values.outputElasticSearch.tls.caDirName }}/{{ .Values.outputElasticSearch.tls.caFileName }}"
+              value: "{{ .Values.outputElasticSearch.tls.caMountPath }}/{{ .Values.outputElasticSearch.tls.caFileName }}"
             {{- end }}
             {{- end }}
           {{- end }} {{/* End ElasticSearch */}}
@@ -130,7 +130,7 @@ spec:
               value: {{ .Values.outputOpenSearch.tls.skipVerification | quote }}
             {{- if and .Values.outputOpenSearch.tls.enable (not (eq .Values.outputOpenSearch.tls.caConfigMapName "")) }}
             - name: "EF_OUTPUT_OPENSEARCH_TLS_CA_CERT_FILEPATH"
-              value: "{{ .Values.outputOpenSearch.tls.caDirName }}/{{ .Values.outputOpenSearch.tls.caFileName }}"
+              value: "{{ .Values.outputOpenSearch.tls.caMountPath }}/{{ .Values.outputOpenSearch.tls.caFileName }}"
             {{- end }}
             {{- end }}
           {{- end }} {{/* End OpenSearch */}}
@@ -160,12 +160,12 @@ spec:
             {{- end }}
             {{- if and .Values.outputElasticSearch.tls.enable (not (eq .Values.outputElasticSearch.tls.caConfigMapName "")) }}
             - name: {{ .Values.outputElasticSearch.tls.caConfigMapName }}
-              mountPath: {{ .Values.outputElasticSearch.tls.caDirName }}
+              mountPath: {{ .Values.outputElasticSearch.tls.caMountPath }}
               readOnly: true
             {{- end }}
             {{- if and .Values.outputOpenSearch.tls.enable (not (eq .Values.outputOpenSearch.tls.caConfigMapName "")) }}
             - name: {{ .Values.outputOpenSearch.tls.caConfigMapName }}
-              mountPath: {{ .Values.outputOpenSearch.tls.caDirName }}
+              mountPath: {{ .Values.outputOpenSearch.tls.caMountPath }}
               readOnly: true
             {{- end }}
             {{- if .Values.extraVolumeMounts }}
