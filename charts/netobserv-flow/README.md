@@ -26,9 +26,9 @@ The ElastiFlow Unified Flow Collector receives, decodes, transforms, normalizes,
 ## Installation
 
 ```sh
-helm repo add elastiflow https://elastiflow.github.io/helm-chart-netobserv/
+helm repo add netobserv https://elastiflow.github.io/helm-chart-netobserv/
 helm repo update
-helm install netobserv elastiflow/netobserv
+helm install netobserv netobserv/netobserv
 ```
 
 ## Configuration
@@ -45,13 +45,13 @@ license:
 Then make sure to use helm's `set` option to configure the license key when installing the chart. For example:
 
 ```sh
-helm install netobserv elastiflow/netobserv \
+helm install netobserv netobserv/netobserv \
   --set license.licenseKey="licensekeygoeshere"
 ```
 
 For additional kubernetes configuration information, please refer to the comments in the [default values file](./charts/netobserv/values.yaml).
 
-For additional environment configurations, please refer to the [configuration reference guide](https://docs.elastiflow.com/docs/config_ref/).
+For additional environment configurations, please refer to the [configuration reference guide](https://docs.elastiflow.com/flowcoll/configuration).
 
 ### Prometheus Operator ServiceMonitor
 

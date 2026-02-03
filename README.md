@@ -7,6 +7,7 @@
   - [Upgrade](#upgrade)
     - [`netobserv-flow-0.x.x`/`netobserv-os-0.x.x`](#netobserv-flow-0xxnetobserv-os-0xx)
     - [`netobserv-0.4.14` -\> `netobserv-0.5.x` notes](#netobserv-0414---netobserv-05x-notes)
+    - [`netobserv-flow-0.6.0` -\> `netobserv-flow-0.7.x` notes](#netobserv-flow-060---netobserv-flow-07x-notes)
     - [License Setup](#license-setup)
   - [License](#license)
 
@@ -70,8 +71,68 @@ Hint, use `kubectl diff` before upgrade to spot potential issues.
 ```sh
 helm repo update
 rm -rf helm_rendered
-helm template -n elastiflow -f examples/flow_os_simple_gke/values.yaml --output-dir helm_rendered netobserv elastiflow/netobserv --version netobserv-0.5.0
-kubectl diff -R -f helm_rendered/
+helm template -n elastiflow -f ${PATH_TO_VALUES} --output-dir helm_rendered netobserv netobserv/netobserv --version netobserv-0.5.0
+kubectl diff -R -f helm_rendered
+```
+
+### `netobserv-flow-0.6.0` -> `netobserv-flow-0.7.x` notes
+
+- `outputKafka` values key was removed in order to better align with the existing Ansible Role variables specification ([ref](https://github.com/elastiflow/ansible-collection-netobserv/tree/v0.5.0/roles/netobserv_flow)).
+
+  <details>
+  <summary>Migration example</summary>
+
+  Pre `0.7.0` values
+
+  ```yaml
+  outputKafka:
+    enable: true
+    brokers: "192.0.2.11:9092,192.0.2.12:9092,192.0.2.13:9092"
+    tls:
+      enable: true
+      caConfigMapName: "kafka-ca"
+      caConfigMapKey: "ca.crt"
+      caMountPath: "/etc/ssl"
+      caFileName: "ca.crt"
+
+  ```
+
+  `>= 0.7.0` values
+
+  ```yaml
+  env:
+    - name: EF_OUTPUT_KAFKA_ENABLE
+      value: 'true'
+    - name: "EF_OUTPUT_KAFKA_BROKERS"
+      value: "192.0.2.11:9092,192.0.2.12:9092,192.0.2.13:9092"
+    - name: EF_OUTPUT_KAFKA_TLS_ENABLE
+      value: 'true'
+    - name: "EF_OUTPUT_KAFKA_TLS_CA_CERT_FILEPATH"
+      value: '/etc/ssl/ca.crt'
+
+  extraVolumeMounts:
+    - name: kafka-ca
+      mountPath: /etc/ssl
+      readOnly: true
+
+  extraVolumes:
+    - name: kafka-ca
+      configMap:
+        name: kafka-ca
+        items:
+          - key: ca.crt
+            path: ca.crt
+  ```
+
+  </details>
+
+Hint, use `kubectl diff` before upgrade to spot potential issues.
+
+```sh
+helm repo update
+rm -rf helm_rendered
+helm template -n ${NAMESPACE}$ -f ${PATH_TO_VALUES} --output-dir helm_rendered netobserv netobserv/netobserv-flow --version 0.7.0
+kubectl diff -R -f helm_rendered
 ```
 
 ### License Setup
@@ -86,13 +147,13 @@ license:
 Then make sure to use helm's `set` option to configure the license key when installing the chart. For example:
 
 ```sh
-helm install netobserv elastiflow/netobserv \
+helm install netobserv netobserv/netobserv-flow \
   --set license.licenseKey="licensekeygoeshere"
 ```
 
 For additional kubernetes configuration information, please refer to the comments in the [default values file](./charts/netobserv-flow/values.yaml).
 
-For additional environment configurations, please refer to the [configuration reference guide](https://docs.elastiflow.com/docs/config_ref/).
+For additional environment configurations, please refer to the [configuration reference guide](https://docs.elastiflow.com/flowcoll/configuration).
 
 ## License
 

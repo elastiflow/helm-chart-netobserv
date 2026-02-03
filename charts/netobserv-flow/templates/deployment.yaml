@@ -134,18 +134,6 @@ spec:
             {{- end }}
             {{- end }}
           {{- end }} {{/* End OpenSearch */}}
-          {{- if .Values.outputKafka.enable }} {{/* Start Kafka */}}
-            - name: EF_OUTPUT_KAFKA_ENABLE
-              value: 'true'
-            - name: "EF_OUTPUT_KAFKA_BROKERS"
-              value: {{ .Values.outputKafka.brokers | quote }}
-            {{- if .Values.outputKafka.tls.enable }}
-            - name: EF_OUTPUT_KAFKA_TLS_ENABLE
-              value: 'true'
-            - name: "EF_OUTPUT_KAFKA_TLS_CA_CERT_FILEPATH"
-              value: "{{ .Values.outputKafka.tls.caMountPath }}/{{ .Values.outputKafka.tls.caFileName }}"
-            {{- end }}
-          {{- end }} {{/* End Kafka */}}
           {{- with .Values.env }}
             {{- toYaml . | nindent 12 }}
           {{- end }}
@@ -169,11 +157,6 @@ spec:
             {{- if or .Values.maxmind.asnEnabled .Values.maxmind.geoipEnabled }}
             - name: geolite2-data
               mountPath: /etc/elastiflow/maxmind
-            {{- end }}
-            {{- if and .Values.outputKafka.tls.enable (not (eq .Values.outputKafka.tls.caConfigMapName "")) }}
-            - name: {{ .Values.outputKafka.tls.caConfigMapName }}
-              mountPath: {{ .Values.outputKafka.tls.caMountPath }}
-              readOnly: true
             {{- end }}
             {{- if and .Values.outputElasticSearch.tls.enable (not (eq .Values.outputElasticSearch.tls.caConfigMapName "")) }}
             - name: {{ .Values.outputElasticSearch.tls.caConfigMapName }}
@@ -227,14 +210,6 @@ spec:
         - name: geolite2-data
           emptyDir: {}
         {{- end }}
-        {{- if and .Values.outputKafka.tls.enable (not (eq .Values.outputKafka.tls.caConfigMapName "")) }}
-        - name: {{ .Values.outputKafka.tls.caConfigMapName }}
-          configMap:
-            name: {{ .Values.outputKafka.tls.caConfigMapName }}
-            items:
-              - key: {{ .Values.outputKafka.tls.caConfigMapKey }}
-                path: {{ .Values.outputKafka.tls.caFileName }}
-        {{- end }}
         {{- if and .Values.outputElasticSearch.tls.enable (not (eq .Values.outputElasticSearch.tls.caConfigMapName "")) }}
         - name: {{ .Values.outputElasticSearch.tls.caConfigMapName }}
           configMap:
@@ -251,9 +226,9 @@ spec:
               - key: {{ .Values.outputOpenSearch.tls.caConfigMapKey }}
                 path: {{ .Values.outputOpenSearch.tls.caFileName }}
         {{- end }}
-      {{- end }}
-      {{- if .Values.extraVolumes }}
-        {{- toYaml .Values.extraVolumes | nindent 8 }}
+        {{- if .Values.extraVolumes }}
+          {{- toYaml .Values.extraVolumes | nindent 8 }}
+        {{- end }}
       {{- end }}
       {{- with .Values.affinity }}
       affinity:
