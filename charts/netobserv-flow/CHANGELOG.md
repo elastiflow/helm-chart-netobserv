@@ -1,3 +1,13 @@
+## [netobserv-flow-0.8.0] - 2026-02-05
+
+### Features
+
+- Upgrade flow collector to 7.21.0 (#125)
+
+[netobserv-flow-0.7.0..netobserv-flow-0.8.0](https://github.com/elastiflow/helm-chart-netobserv/compare/netobserv-flow-0.7.0...netobserv-flow-0.8.0)
+
+
+
 ## [netobserv-flow-0.7.0] - 2026-01-07
 
 ### Features
