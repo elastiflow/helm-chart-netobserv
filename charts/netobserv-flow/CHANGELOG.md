@@ -1,3 +1,13 @@
+## [netobserv-flow-0.8.2] - 2026-03-05
+
+### Bug Fixes
+
+- Add missing  (#131)
+
+[netobserv-flow-0.8.1..netobserv-flow-0.8.2](https://github.com/elastiflow/helm-chart-netobserv/compare/netobserv-flow-0.8.1...netobserv-flow-0.8.2)
+
+
+
 ## [netobserv-flow-0.8.1] - 2026-02-09
 
 ### Bug Fixes
