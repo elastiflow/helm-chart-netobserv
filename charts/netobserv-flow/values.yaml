@@ -169,6 +169,8 @@ commonLabels: {}
 podAnnotations: {}
 podLabels: {}
 
+terminationGracePeriodSeconds: 30
+
 podSecurityContext:
   runAsNonRoot: true
   runAsUser: 1000

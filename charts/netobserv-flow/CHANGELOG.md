@@ -1,3 +1,33 @@
+## [netobserv-flow-0.8.3] - 2026-03-13
+
+### Bug Fixes
+
+- Bump NetObserv to  (#133)
+
+[netobserv-flow-0.8.2..netobserv-flow-0.8.3](https://github.com/elastiflow/helm-chart-netobserv/compare/netobserv-flow-0.8.2...netobserv-flow-0.8.3)
+
+
+
+## [netobserv-flow-0.8.2] - 2026-03-05
+
+### Bug Fixes
+
+- Add missing  (#131)
+
+[netobserv-flow-0.8.1..netobserv-flow-0.8.2](https://github.com/elastiflow/helm-chart-netobserv/compare/netobserv-flow-0.8.1...netobserv-flow-0.8.2)
+
+
+
+## [netobserv-flow-0.8.1] - 2026-02-09
+
+### Bug Fixes
+
+- Upgrade flow collector to 7.21.1 (#127)
+
+[netobserv-flow-0.8.0..netobserv-flow-0.8.1](https://github.com/elastiflow/helm-chart-netobserv/compare/netobserv-flow-0.8.0...netobserv-flow-0.8.1)
+
+
+
 ## [netobserv-flow-0.8.0] - 2026-02-05
 
 ### Features
