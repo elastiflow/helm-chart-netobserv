@@ -39,6 +39,9 @@ on:
         default: 15
         description: "Job timeout in minutes"
 
+env:
+  CHART_DIR: ${{ inputs.chart_dir }}
+
 jobs:
   # Detect if a commit was made from a release PR with title like '[release v0.1.1] (#49)'
   release_or_pr:
@@ -130,7 +133,7 @@ jobs:
         uses: azure/setup-helm@dda3372f752e03dde6b3237bc9431cdc2f7a02a2 # v5.0.0
       - name: Install Helm dependencies
         run: |
-          (helm dependency list ${{ inputs.chart_dir }} || true) | grep -E 'https://' | while read -r dep; do
+          (helm dependency list ${CHART_DIR} || true) | grep -E 'https://' | while read -r dep; do
             helm repo add $(echo ${dep} | awk '{print $1}') $(echo ${dep} | awk '{print $4}')
           done
       - name: Install chart-releaser
@@ -141,7 +144,7 @@ jobs:
           install_only: true
       - name: Package helm chart
         run: |
-          cr package ${{ inputs.chart_dir }}
+          cr package ${CHART_DIR}
       - name: Create GH release
         if: ${{ fromJson(steps.prepare_release.outputs.new_release_published) }}
         uses: softprops/action-gh-release@3bb12739c298aeb8a4eeaf626c5b8d85266b0e65 # v2.6.2
@@ -154,6 +157,9 @@ jobs:
           make_latest: true
           files: ".cr-release-packages/${{ inputs.chart_name }}-*.tgz"
       - name: Update GH pages index
+        env:
+          REPOSITORY_OWNER: ${{ inputs.repository_owner }}
+          REPOSITORY_NAME: ${{ inputs.repository_name }}
         run: |
           mkdir .cr-index
-          cr index --push -t ${{ secrets.GITHUB_TOKEN }} --owner ${{ inputs.repository_owner	}} --git-repo ${{ inputs.repository_name	}}
+          cr index --push -t ${{ secrets.GITHUB_TOKEN }} --owner ${REPOSITORY_OWNER} --git-repo ${REPOSITORY_NAME}
