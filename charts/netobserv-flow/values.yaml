@@ -176,13 +176,16 @@ podSecurityContext:
   runAsUser: 1000
   runAsGroup: 1000
 
-securityContext: {}
-  # capabilities:
-  #   drop:
-  #   - ALL
-  # readOnlyRootFilesystem: true
-  # runAsNonRoot: true
-  # runAsUser: 1000
+securityContext:
+  capabilities:
+    drop:
+    - ALL
+  readOnlyRootFilesystem: true
+  runAsNonRoot: true
+  runAsUser: 1000
+  allowPrivilegeEscalation: false
+  seccompProfile:
+    type: RuntimeDefault
 
 # The netobserv container's ports to expose.
 ports:
@@ -290,18 +293,23 @@ gateway:
             - name: '{{ include "netobserv.fullname" $ }}'
               port: 8080
   # GRPCRoutes to be provisioned with the Gateway
-  # grpcRoutes:
-  #   - name: api
-  #     # hostnames: ["foo.bar.com"] # Overrides the gateway.defaultHostNames
-  #     rules:
-  #       - matches:
-  #         - type: Exact
-  #           method:
-  #           service: "foo"
+  # https://gateway-api.sigs.k8s.io/guides/user-guides/grpc-routing/
+  grpcRoutes: []
+  # - name: api # Supports templating
+  #   # hostnames: ["foo.bar.com"] # Overrides the gateway.defaultHostNames, supports templating
+  #   rules:
+  #     - matches:
+  #         - method:
+  #             type: "Exact"
+  #             service: "foo"
+  #             method: "Bar"
   #           headers:
-  #         backendRefs:
-  #           - name: '{{ include "netobserv.fullname" $ }}'
-  #             port: 8080
+  #             - type: Exact
+  #               name: magic
+  #               value: foo
+  #       backendRefs:
+  #         - name: '{{ include "triton.fullname" $ }}'
+  #           port: 8080
 
 resources:
   limits:

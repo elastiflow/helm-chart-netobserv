@@ -11,3 +11,16 @@ repos:
       - id: check-yaml
         files: \.(yaml|yml)$
         exclude: charts/.*
+  - repo: local
+    hooks:
+      - id: trivy
+        name: trivy
+        language: system
+        pass_filenames: false
+        entry: |
+          trivy -q config --skip-files '*.hcl' --skip-dirs '**/.terragrunt-cache/*' --exit-code 1 .
+  - repo: https://github.com/semgrep/pre-commit
+    rev: 'v1.163.0'
+    hooks:
+      - id: semgrep
+        entry: semgrep
