@@ -1,0 +1,13 @@
+misconfigurations:
+  - id: KSV-0020
+    statement: Historically running as UID/GID 1000.
+    paths:
+      - charts/netobserv-flow/**/*
+  - id: KSV-0021
+    statement: Historically running as UID/GID 1000.
+    paths:
+      - charts/netobserv-flow/**/*
+  - id: KSV-0125
+    statement: "`elastiflow/flow-collector` is a NetObserv image registry"
+    paths:
+      - charts/netobserv-flow/**/*
