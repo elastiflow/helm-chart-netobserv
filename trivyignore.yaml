@@ -1,4 +1,8 @@
 misconfigurations:
+  - id: KSV-0014
+    statement: Collector may need to write to FS for discovery processes.
+    paths:
+      - charts/netobserv-flow/**/*
   - id: KSV-0020
     statement: Historically running as UID/GID 1000.
     paths:
