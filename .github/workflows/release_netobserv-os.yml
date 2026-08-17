@@ -22,4 +22,4 @@ jobs:
       chart_dir: charts/netobserv-os
       include_paths: "charts/netobserv-os/**/*"
       chart_yaml_version_keys: '.version,.appVersion'
-    secrets: inherit
+    secrets: inherit # nosemgrep: yaml.github-actions.security.secrets-inherit.secrets-inherit

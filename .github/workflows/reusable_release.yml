@@ -80,7 +80,7 @@ jobs:
           fetch-depth: 0
       - name: Prepare Release
         id: prepare_release
-        uses: elastiflow/gha-reusable/actions/prepare-release@v0
+        uses: elastiflow/gha-reusable/actions/prepare-release@v0 # nosemgrep: yaml.github-actions.security.github-actions-mutable-action-tag.github-actions-mutable-action-tag
         with:
           tag_prefix: "${{ inputs.chart_name }}-"
           include_paths: ${{ inputs.include_paths }}
@@ -120,7 +120,7 @@ jobs:
           fetch-depth: 0
       - name: Prepare Release
         id: prepare_release
-        uses: elastiflow/gha-reusable/actions/prepare-release@v0
+        uses: elastiflow/gha-reusable/actions/prepare-release@v0 # nosemgrep: yaml.github-actions.security.github-actions-mutable-action-tag.github-actions-mutable-action-tag
         with:
           tag_prefix: "${{ inputs.chart_name }}-"
           include_paths: ${{ inputs.include_paths }}
