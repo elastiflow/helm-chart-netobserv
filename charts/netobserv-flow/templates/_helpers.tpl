@@ -107,15 +107,21 @@ Create the name of the service account to use
 {{/* Define OpenSearch Dashboards dashboards import command */}}
 {{- define "netobserv.osDashboardsImportCMD" -}}
 {{- $insecure := .Values.outputOpenSearch.dashboards.tls.validate_certs | ternary "-k" "" -}}
-{{- $headers := `-H "osd-xsrf: true" -H "securitytenant: global"` -}}
+{{- $headers := `-H "osd-xsrf: true"` -}}
+{{- with .Values.outputOpenSearch.dashboards.securityTenant -}}
+{{- $headers = printf `%s -H "securitytenant: %s"` $headers . -}}
+{{- end -}}
 {{- $form := "--form file=@/tmp/dashboards.ndjson" -}}
 curl -XPOST -f {{ $insecure }} {{ $headers }} {{ $form }} -u "${EF_OUTPUT_OPENSEARCH_USERNAME}:${EF_OUTPUT_OPENSEARCH_PASSWORD}" "{{ .Values.outputOpenSearch.dashboards.dashboards_url }}/api/saved_objects/_import?overwrite={{ .Values.outputOpenSearch.dashboards.override }}"
 {{- end -}}
 
-{{/* Define ELasticSearch Dashboards dashboards import command */}}
+{{/* Define ElasticSearch Dashboards dashboards import command */}}
 {{- define "netobserv.esDashboardsImportCMD" -}}
 {{- $insecure := .Values.outputElasticSearch.dashboards.tls.validate_certs | ternary "-k" "" -}}
-{{- $headers := `-H "kbn-xsrf: true" -H "securitytenant: global"` -}}
+{{- $headers := `-H "kbn-xsrf: true"` -}}
+{{- with .Values.outputElasticSearch.dashboards.securityTenant -}}
+{{- $headers = printf `%s -H "securitytenant: %s"` $headers . -}}
+{{- end -}}
 {{- $form := "--form file=@/tmp/dashboards.ndjson" -}}
 curl -XPOST -f {{ $insecure }} {{ $headers }} {{ $form }} -u "${EF_OUTPUT_ELASTICSEARCH_USERNAME}:${EF_OUTPUT_ELASTICSEARCH_PASSWORD}" "{{ .Values.outputElasticSearch.dashboards.dashboards_url }}/api/saved_objects/_import?overwrite={{ .Values.outputElasticSearch.dashboards.override }}"
 {{- end -}}
