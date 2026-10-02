@@ -58,12 +58,17 @@ outputElasticSearch:
 
   # Provision or not the ElasticSearch Kibana dashboards in the ElasticSearch cluster
   # https://docs.elastiflow.com/flowcoll/configuration/outputs/output_elasticsearch
-  # Uses ElasticSearch username/password from the secret
+  # Uses the output secret unless dashboards.secretName is set.
+  # securityTenant "global" sends that header. "" omits it.
   dashboards:
     provision: false
     url: 'https://raw.githubusercontent.com/elastiflow/elastiflow_for_elasticsearch/master/kibana/flow/kibana-8.14.x-flow-codex.ndjson'
     kibana_url: "http://localhost:5601"
     override: false
+    securityTenant: "global"
+    secretName: ""
+    secretKeyUser: username
+    secretKeyPassword: password
     tls:
       validate_certs: false
 
@@ -104,7 +109,9 @@ outputOpenSearch:
 
   # Provision or not the OpenSearch Dashboards dashboards in the OpenSearch cluster
   # https://docs.elastiflow.com/flowcoll/configuration/outputs/output_opensearch
-  # Uses OpenSearch username/password from the secret
+  # Uses the output secret unless dashboards.secretName is set.
+  # With multitenancy, admin plus securitytenant: global is denied indices:data/read/mget.
+  # Set securityTenant to "" or secretName to a kibana_server user. Leave multitenancy enabled.
   dashboards:
     provision: false
     # Dashboards source URL
@@ -112,6 +119,10 @@ outputOpenSearch:
     # OpenSearch Dashboards address with port (address:port)
     dashboards_url: "http://localhost:5601"
     override: false
+    securityTenant: "global"
+    secretName: ""
+    secretKeyUser: username
+    secretKeyPassword: password
     tls:
       validate_certs: false
 

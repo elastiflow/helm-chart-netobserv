@@ -46,15 +46,15 @@ spec:
             - name: EF_OUTPUT_ELASTICSEARCH_USERNAME
               valueFrom:
                 secretKeyRef:
-                  name: {{ include "netobserv.elasticSearchCredentialsSecretName" . }}
-                  key: {{ .Values.outputElasticSearch.secretKeyUser }}
+                  name: {{ .Values.outputElasticSearch.dashboards.secretName | default (include "netobserv.elasticSearchCredentialsSecretName" .) }}
+                  key: {{ ternary .Values.outputElasticSearch.dashboards.secretKeyUser .Values.outputElasticSearch.secretKeyUser (not (empty .Values.outputElasticSearch.dashboards.secretName)) }}
             - name: EF_OUTPUT_ELASTICSEARCH_PASSWORD
               valueFrom:
                 secretKeyRef:
-                  name: {{ include "netobserv.elasticSearchCredentialsSecretName" . }}
-                  key: {{ .Values.outputElasticSearch.secretKeyPassword }}
+                  name: {{ .Values.outputElasticSearch.dashboards.secretName | default (include "netobserv.elasticSearchCredentialsSecretName" .) }}
+                  key: {{ ternary .Values.outputElasticSearch.dashboards.secretKeyPassword .Values.outputElasticSearch.secretKeyPassword (not (empty .Values.outputElasticSearch.dashboards.secretName)) }}
           securityContext:
-            {{- toYaml $.Values.securityContext | nindent 8 }}
+            {{- toYaml $.Values.securityContext | nindent 12 }}
           resources:
             requests:
               cpu: "200m"
@@ -138,15 +138,15 @@ spec:
             - name: EF_OUTPUT_OPENSEARCH_USERNAME
               valueFrom:
                 secretKeyRef:
-                  name: {{ include "netobserv.openSearchCredentialsSecretName" . }}
-                  key: {{ .Values.outputOpenSearch.secretKeyUser }}
+                  name: {{ .Values.outputOpenSearch.dashboards.secretName | default (include "netobserv.openSearchCredentialsSecretName" .) }}
+                  key: {{ ternary .Values.outputOpenSearch.dashboards.secretKeyUser .Values.outputOpenSearch.secretKeyUser (not (empty .Values.outputOpenSearch.dashboards.secretName)) }}
             - name: EF_OUTPUT_OPENSEARCH_PASSWORD
               valueFrom:
                 secretKeyRef:
-                  name: {{ include "netobserv.openSearchCredentialsSecretName" . }}
-                  key: {{ .Values.outputOpenSearch.secretKeyPassword }}
+                  name: {{ .Values.outputOpenSearch.dashboards.secretName | default (include "netobserv.openSearchCredentialsSecretName" .) }}
+                  key: {{ ternary .Values.outputOpenSearch.dashboards.secretKeyPassword .Values.outputOpenSearch.secretKeyPassword (not (empty .Values.outputOpenSearch.dashboards.secretName)) }}
           securityContext:
-            {{- toYaml $.Values.securityContext | nindent 16 }}
+            {{- toYaml $.Values.securityContext | nindent 12 }}
           resources:
             requests:
               cpu: "200m"
