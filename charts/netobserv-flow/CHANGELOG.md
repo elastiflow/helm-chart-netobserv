@@ -1,3 +1,16 @@
+## [netobserv-flow-0.12.0] - 2026-10-02
+
+### Bug Fixes
+
+- **netobserv-flow:** Allow dashboard import under opensearch multitenancy (#159)
+### Features
+
+- **netobserv-flow:** Bump collector appVersion to 7.26.3 (#155)
+
+[netobserv-flow-0.11.0..netobserv-flow-0.12.0](https://github.com/elastiflow/helm-chart-netobserv/compare/netobserv-flow-0.11.0...netobserv-flow-0.12.0)
+
+
+
 ## [netobserv-flow-0.12.0] - 2026-08-17
 
 ### Features
