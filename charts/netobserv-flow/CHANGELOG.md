@@ -1,3 +1,13 @@
+## [netobserv-flow-0.13.0] - 2026-10-14
+
+### Features
+
+- **netobserv-flow:** Bump collector version to 7.27.0 (#161)
+
+[netobserv-flow-0.12.0..netobserv-flow-0.13.0](https://github.com/elastiflow/helm-chart-netobserv/compare/netobserv-flow-0.12.0...netobserv-flow-0.13.0)
+
+
+
 ## [netobserv-flow-0.12.0] - 2026-10-02
 
 ### Bug Fixes
