@@ -1,69 +1,76 @@
-{{- include "netobserv.validateCollectors" . -}}
+{{- include "netobserv.validateCollectors" $ -}}
+{{- $collectors := $.Values.collectors | default (list (dict "name" "")) -}}
+{{- range $i, $collector := $collectors }}
+{{- if gt $i 0 }}
+---
+{{- end }}
 apiVersion: apps/v1
-kind: {{ if .Values.collectors }}StatefulSet{{ else }}Deployment{{ end }}
+kind: Deployment
 metadata:
-  name: {{ if .Values.collectors }}{{ include "netobserv.statefulsetName" . }}{{ else }}{{ include "netobserv.fullname" . }}{{ end }}
-  namespace: {{ .Release.Namespace }}
+  name: {{ include "netobserv.workloadName" (dict "root" $ "name" $collector.name) }}
+  namespace: {{ $.Release.Namespace }}
   labels:
-    {{- include "netobserv.labels" . | nindent 4 }}
+    {{- include "netobserv.labels" $ | nindent 4 }}
+    {{- with $collector.name }}
+    app.kubernetes.io/component: {{ . | quote }}
+    {{- end }}
 spec:
-  {{- if .Values.collectors }}
-  serviceName: {{ include "netobserv.fullname" . }}
-  replicas: {{ len .Values.collectors }}
-  podManagementPolicy: Parallel
-  {{- else if not .Values.autoscaling.enabled }}
-  replicas: {{ .Values.replicaCount }}
+  {{- if $collector.name }}
+  replicas: 1
+  {{- else if not $.Values.autoscaling.enabled }}
+  replicas: {{ $.Values.replicaCount }}
   {{- end }}
   selector:
     matchLabels:
-      {{- include "netobserv.selectorLabels" . | nindent 6 }}
-  {{- if .Values.collectors }}
-  updateStrategy:
-    type: {{ eq .Values.strategy.type "Recreate" | ternary "OnDelete" "RollingUpdate" }}
-  {{- else }}
-  strategy: {{ .Values.strategy | toYaml | nindent 6 }}
-  {{- end }}
+      {{- include "netobserv.selectorLabels" $ | nindent 6 }}
+      {{- with $collector.name }}
+      app.kubernetes.io/component: {{ . | quote }}
+      {{- end }}
+  strategy: {{ $.Values.strategy | toYaml | nindent 6 }}
   template:
     metadata:
-      {{- with .Values.podAnnotations }}
+      {{- with $.Values.podAnnotations }}
       annotations:
         {{- toYaml . | nindent 8 }}
       {{- end }}
       labels:
-        {{- include "netobserv.labels" . | nindent 8 }}
-        {{- with .Values.podLabels }}
+        {{- include "netobserv.labels" $ | nindent 8 }}
+        {{- with $.Values.podLabels }}
         {{- toYaml . | nindent 8 }}
         {{- end }}
+        {{- with $collector.name }}
+        app.kubernetes.io/component: {{ . | quote }}
+        {{- end }}
     spec:
-      terminationGracePeriodSeconds: {{ .Values.terminationGracePeriodSeconds }}
-      {{- with .Values.imagePullSecrets }}
+      terminationGracePeriodSeconds: {{ $.Values.terminationGracePeriodSeconds }}
+      {{- with $.Values.imagePullSecrets }}
       imagePullSecrets:
         {{- toYaml . | nindent 8 }}
       {{- end }}
-      serviceAccountName: {{ include "netobserv.serviceAccountName" . }}
+      serviceAccountName: {{ include "netobserv.serviceAccountName" $ }}
       securityContext:
-        {{- toYaml .Values.podSecurityContext | nindent 8 }}
-      {{- if or .Values.maxmind.asnEnabled .Values.maxmind.geoipEnabled }}
+        {{- toYaml $.Values.podSecurityContext | nindent 8 }}
+      {{- if or $.Values.maxmind.asnEnabled $.Values.maxmind.geoipEnabled }}
       initContainers:
         - name: init-maxmind-geoipupdate
           image: maxmindinc/geoipupdate
           workingDir: /data
           env:
             - name: GEOIPUPDATE_ACCOUNT_ID
-              value: {{ .Values.maxmind.accountId | quote }}
+              value: {{ $.Values.maxmind.accountId | quote }}
             - name: GEOIPUPDATE_LICENSE_KEY
               valueFrom:
                 secretKeyRef:
-                  name: {{ .Values.maxmind.secretName }}
+                  name: {{ $.Values.maxmind.secretName }}
                   key: license
             - name: GEOIPUPDATE_EDITION_IDS
-              {{- if and .Values.maxmind.asnEnabled (not .Values.maxmind.geoipEnabled) }}
+              {{- if and $.Values.maxmind.asnEnabled (not $.Values.maxmind.geoipEnabled) }}
               value: "GeoLite2-ASN"
               {{- end }}
-              {{- if and .Values.maxmind.geoipEnabled (not .Values.maxmind.asnEnabled) }}
+              {{- if and $.Values.maxmind.geoipEnabled (not $.Values.maxmind.asnEnabled) }}
               value: "GeoLite2-City"
               {{- end }}
-              {{- if and .Values.maxmind.geoipEnabled .Values.maxmind.asnEnabled }}
+              {{- if and $.Values.maxmind.geoipEnabled $.Values.maxmind.asnEnabled }}
               value: "GeoLite2-ASN GeoLite2-City"
               {{- end }}
             - name: GEOIPUPDATE_DB_DIR
@@ -73,184 +80,185 @@ spec:
               mountPath: /data
       {{- end }}
       containers:
-        - name: {{ .Chart.Name }}
+        - name: {{ $.Chart.Name }}
           securityContext:
-            {{- toYaml .Values.securityContext | nindent 12 }}
-          image: "{{ .Values.image.repository }}:{{ .Values.image.tag | default .Chart.AppVersion }}"
-          imagePullPolicy: {{ .Values.image.pullPolicy }}
+            {{- toYaml $.Values.securityContext | nindent 12 }}
+          image: "{{ $.Values.image.repository }}:{{ $.Values.image.tag | default $.Chart.AppVersion }}"
+          imagePullPolicy: {{ $.Values.image.pullPolicy }}
           env:
-          {{- if .Values.license.accountId }}
+          {{- if $.Values.license.accountId }}
             - name: EF_ACCOUNT_ID
-              value: {{ .Values.license.accountId | quote }}
+              value: {{ $.Values.license.accountId | quote }}
           {{- end }}
-          {{- if .Values.license.createSecret }}
+          {{- if $.Values.license.createSecret }}
             - name: EF_FLOW_LICENSE_KEY
               valueFrom:
                 secretKeyRef:
-                  name: {{ .Values.license.secretName }}
+                  name: {{ $.Values.license.secretName }}
                   key: license
           {{- end }}
-          {{- if .Values.outputElasticSearch.enable }} {{/* Start ElasticSearch */}}
+          {{- if $.Values.outputElasticSearch.enable }} {{/* Start ElasticSearch */}}
             - name: EF_OUTPUT_ELASTICSEARCH_ENABLE
-              value: {{ .Values.outputElasticSearch.enable | quote }}
+              value: {{ $.Values.outputElasticSearch.enable | quote }}
             - name: EF_OUTPUT_ELASTICSEARCH_ADDRESSES
-              value: {{ .Values.outputElasticSearch.addresses }}
+              value: {{ $.Values.outputElasticSearch.addresses }}
             - name: EF_OUTPUT_ELASTICSEARCH_USERNAME
               valueFrom:
                 secretKeyRef:
-                  name: {{ include "netobserv.elasticSearchCredentialsSecretName" . }}
-                  key: {{ .Values.outputElasticSearch.secretKeyUser }}
+                  name: {{ include "netobserv.elasticSearchCredentialsSecretName" $ }}
+                  key: {{ $.Values.outputElasticSearch.secretKeyUser }}
             - name: EF_OUTPUT_ELASTICSEARCH_PASSWORD
               valueFrom:
                 secretKeyRef:
-                  name: {{ include "netobserv.elasticSearchCredentialsSecretName" . }}
-                  key: {{ .Values.outputElasticSearch.secretKeyPassword }}
+                  name: {{ include "netobserv.elasticSearchCredentialsSecretName" $ }}
+                  key: {{ $.Values.outputElasticSearch.secretKeyPassword }}
             - name: EF_OUTPUT_ELASTICSEARCH_ECS_ENABLE
-              value: {{ .Values.outputElasticSearch.ecs.enable | quote}}
-            {{- if .Values.outputElasticSearch.tls.enable }}
+              value: {{ $.Values.outputElasticSearch.ecs.enable | quote}}
+            {{- if $.Values.outputElasticSearch.tls.enable }}
             - name: EF_OUTPUT_ELASTICSEARCH_TLS_ENABLE
-              value: {{ .Values.outputElasticSearch.tls.enable | quote }}
+              value: {{ $.Values.outputElasticSearch.tls.enable | quote }}
             - name: EF_OUTPUT_ELASTICSEARCH_TLS_SKIP_VERIFICATION
-              value: {{ .Values.outputElasticSearch.tls.skipVerification | quote }}
-            {{- if and .Values.outputElasticSearch.tls.enable (not (eq .Values.outputElasticSearch.tls.caConfigMapName "")) }}
+              value: {{ $.Values.outputElasticSearch.tls.skipVerification | quote }}
+            {{- if and $.Values.outputElasticSearch.tls.enable (not (eq $.Values.outputElasticSearch.tls.caConfigMapName "")) }}
             - name: "EF_OUTPUT_ELASTICSEARCH_TLS_CA_CERT_FILEPATH"
-              value: "{{ .Values.outputElasticSearch.tls.caMountPath }}/{{ .Values.outputElasticSearch.tls.caFileName }}"
+              value: "{{ $.Values.outputElasticSearch.tls.caMountPath }}/{{ $.Values.outputElasticSearch.tls.caFileName }}"
             {{- end }}
             {{- end }}
           {{- end }} {{/* End ElasticSearch */}}
-          {{- if .Values.outputOpenSearch.enable }} {{/* Start OpenSearch */}}
+          {{- if $.Values.outputOpenSearch.enable }} {{/* Start OpenSearch */}}
             - name: EF_OUTPUT_OPENSEARCH_ENABLE
-              value: {{ .Values.outputOpenSearch.enable | quote }}
+              value: {{ $.Values.outputOpenSearch.enable | quote }}
             - name: EF_OUTPUT_OPENSEARCH_ADDRESSES
-              value: {{ .Values.outputOpenSearch.addresses }}
+              value: {{ $.Values.outputOpenSearch.addresses }}
             - name: EF_OUTPUT_OPENSEARCH_USERNAME
               valueFrom:
                 secretKeyRef:
-                  name: {{ include "netobserv.openSearchCredentialsSecretName" . }}
-                  key: {{ .Values.outputOpenSearch.secretKeyUser }}
+                  name: {{ include "netobserv.openSearchCredentialsSecretName" $ }}
+                  key: {{ $.Values.outputOpenSearch.secretKeyUser }}
             - name: EF_OUTPUT_OPENSEARCH_PASSWORD
               valueFrom:
                 secretKeyRef:
-                  name: {{ include "netobserv.openSearchCredentialsSecretName" . }}
-                  key: {{ .Values.outputOpenSearch.secretKeyPassword }}
+                  name: {{ include "netobserv.openSearchCredentialsSecretName" $ }}
+                  key: {{ $.Values.outputOpenSearch.secretKeyPassword }}
             - name: EF_OUTPUT_OPENSEARCH_ECS_ENABLE
-              value: {{ .Values.outputOpenSearch.ecs.enable | quote}}
-            {{- if .Values.outputOpenSearch.tls.enable }}
+              value: {{ $.Values.outputOpenSearch.ecs.enable | quote}}
+            {{- if $.Values.outputOpenSearch.tls.enable }}
             - name: EF_OUTPUT_OPENSEARCH_TLS_ENABLE
-              value: {{ .Values.outputOpenSearch.tls.enable | quote }}
+              value: {{ $.Values.outputOpenSearch.tls.enable | quote }}
             - name: EF_OUTPUT_OPENSEARCH_TLS_SKIP_VERIFICATION
-              value: {{ .Values.outputOpenSearch.tls.skipVerification | quote }}
-            {{- if and .Values.outputOpenSearch.tls.enable (not (eq .Values.outputOpenSearch.tls.caConfigMapName "")) }}
+              value: {{ $.Values.outputOpenSearch.tls.skipVerification | quote }}
+            {{- if and $.Values.outputOpenSearch.tls.enable (not (eq $.Values.outputOpenSearch.tls.caConfigMapName "")) }}
             - name: "EF_OUTPUT_OPENSEARCH_TLS_CA_CERT_FILEPATH"
-              value: "{{ .Values.outputOpenSearch.tls.caMountPath }}/{{ .Values.outputOpenSearch.tls.caFileName }}"
+              value: "{{ $.Values.outputOpenSearch.tls.caMountPath }}/{{ $.Values.outputOpenSearch.tls.caFileName }}"
             {{- end }}
             {{- end }}
           {{- end }} {{/* End OpenSearch */}}
-          {{- with .Values.env }}
+          {{- with $.Values.env }}
             {{- toYaml . | nindent 12 }}
           {{- end }}
-          ports: {{ .Values.ports | toYaml | nindent 12 }}
-          {{- if .Values.livenessProbe.enabled }}
+          ports: {{ $.Values.ports | toYaml | nindent 12 }}
+          {{- if $.Values.livenessProbe.enabled }}
           startupProbe:
-            {{- omit .Values.startupProbe "enabled" | toYaml | nindent 12 }}
+            {{- omit $.Values.startupProbe "enabled" | toYaml | nindent 12 }}
           {{- end }}
-          {{- if .Values.readinessProbe.enabled }}
+          {{- if $.Values.readinessProbe.enabled }}
           livenessProbe:
-            {{- omit .Values.livenessProbe "enabled" | toYaml | nindent 12 }}
+            {{- omit $.Values.livenessProbe "enabled" | toYaml | nindent 12 }}
           {{- end }}
-          {{- if .Values.readinessProbe.enabled }}
+          {{- if $.Values.readinessProbe.enabled }}
           readinessProbe:
-            {{- omit .Values.readinessProbe "enabled" | toYaml | nindent 12 }}
+            {{- omit $.Values.readinessProbe "enabled" | toYaml | nindent 12 }}
           {{- end }}
           resources:
-            {{- toYaml .Values.resources | nindent 12 }}
-          {{- if eq (include "volumeMountsEnabled" .) "true" }}
+            {{- toYaml $.Values.resources | nindent 12 }}
+          {{- if eq (include "volumeMountsEnabled" $) "true" }}
           volumeMounts:
-            {{- if or .Values.maxmind.asnEnabled .Values.maxmind.geoipEnabled }}
+            {{- if or $.Values.maxmind.asnEnabled $.Values.maxmind.geoipEnabled }}
             - name: geolite2-data
               mountPath: /etc/elastiflow/maxmind
             {{- end }}
-            {{- if and .Values.outputElasticSearch.tls.enable (not (eq .Values.outputElasticSearch.tls.caConfigMapName "")) }}
-            - name: {{ .Values.outputElasticSearch.tls.caConfigMapName }}
-              mountPath: {{ .Values.outputElasticSearch.tls.caMountPath }}
+            {{- if and $.Values.outputElasticSearch.tls.enable (not (eq $.Values.outputElasticSearch.tls.caConfigMapName "")) }}
+            - name: {{ $.Values.outputElasticSearch.tls.caConfigMapName }}
+              mountPath: {{ $.Values.outputElasticSearch.tls.caMountPath }}
               readOnly: true
             {{- end }}
-            {{- if and .Values.outputOpenSearch.tls.enable (not (eq .Values.outputOpenSearch.tls.caConfigMapName "")) }}
-            - name: {{ .Values.outputOpenSearch.tls.caConfigMapName }}
-              mountPath: {{ .Values.outputOpenSearch.tls.caMountPath }}
+            {{- if and $.Values.outputOpenSearch.tls.enable (not (eq $.Values.outputOpenSearch.tls.caConfigMapName "")) }}
+            - name: {{ $.Values.outputOpenSearch.tls.caConfigMapName }}
+              mountPath: {{ $.Values.outputOpenSearch.tls.caMountPath }}
               readOnly: true
             {{- end }}
-            {{- if .Values.extraVolumeMounts }}
-              {{- toYaml .Values.extraVolumeMounts | nindent 12 }}
+            {{- if $.Values.extraVolumeMounts }}
+              {{- toYaml $.Values.extraVolumeMounts | nindent 12 }}
             {{- end }}
           {{- end }}
-        {{- if or .Values.maxmind.asnEnabled .Values.maxmind.geoipEnabled }}
+        {{- if or $.Values.maxmind.asnEnabled $.Values.maxmind.geoipEnabled }}
         - name: maxmind-geoipupdate
           image: maxmindinc/geoipupdate
           workingDir: /data
           env:
             - name: GEOIPUPDATE_ACCOUNT_ID
-              value: {{ .Values.maxmind.accountId | quote }}
+              value: {{ $.Values.maxmind.accountId | quote }}
             - name: GEOIPUPDATE_LICENSE_KEY
               valueFrom:
                 secretKeyRef:
-                  name: {{ .Values.maxmind.secretName }}
+                  name: {{ $.Values.maxmind.secretName }}
                   key: license
             - name: GEOIPUPDATE_EDITION_IDS
-              {{- if and .Values.maxmind.asnEnabled (not .Values.maxmind.geoipEnabled) }}
+              {{- if and $.Values.maxmind.asnEnabled (not $.Values.maxmind.geoipEnabled) }}
               value: "GeoLite2-ASN"
               {{- end }}
-              {{- if and .Values.maxmind.geoipEnabled (not .Values.maxmind.asnEnabled) }}
+              {{- if and $.Values.maxmind.geoipEnabled (not $.Values.maxmind.asnEnabled) }}
               value: "GeoLite2-City"
               {{- end }}
-              {{- if and .Values.maxmind.geoipEnabled .Values.maxmind.asnEnabled }}
+              {{- if and $.Values.maxmind.geoipEnabled $.Values.maxmind.asnEnabled }}
               value: "GeoLite2-ASN GeoLite2-City"
               {{- end }}
             - name: GEOIPUPDATE_DB_DIR
               value: /data
-            {{- if .Values.maxmind.geoipEnabled }}
+            {{- if $.Values.maxmind.geoipEnabled }}
             - name: GEOIPUPDATE_FREQUENCY
-              value: "{{ .Values.maxmind.geoipUpdateFrequency }}"
+              value: "{{ $.Values.maxmind.geoipUpdateFrequency }}"
             {{- end }}
           volumeMounts:
             - name: geolite2-data
               mountPath: /data
         {{- end }}
-      {{- if eq (include "volumesEnabled" .) "true" }}
+      {{- if eq (include "volumesEnabled" $) "true" }}
       volumes:
-        {{- if or .Values.maxmind.asnEnabled .Values.maxmind.geoipEnabled }}
+        {{- if or $.Values.maxmind.asnEnabled $.Values.maxmind.geoipEnabled }}
         - name: geolite2-data
           emptyDir: {}
         {{- end }}
-        {{- if and .Values.outputElasticSearch.tls.enable (not (eq .Values.outputElasticSearch.tls.caConfigMapName "")) }}
-        - name: {{ .Values.outputElasticSearch.tls.caConfigMapName }}
+        {{- if and $.Values.outputElasticSearch.tls.enable (not (eq $.Values.outputElasticSearch.tls.caConfigMapName "")) }}
+        - name: {{ $.Values.outputElasticSearch.tls.caConfigMapName }}
           configMap:
-            name: {{ .Values.outputElasticSearch.tls.caConfigMapName }}
+            name: {{ $.Values.outputElasticSearch.tls.caConfigMapName }}
             items:
-              - key: {{ .Values.outputElasticSearch.tls.caConfigMapKey }}
-                path: {{ .Values.outputElasticSearch.tls.caFileName }}
+              - key: {{ $.Values.outputElasticSearch.tls.caConfigMapKey }}
+                path: {{ $.Values.outputElasticSearch.tls.caFileName }}
         {{- end }}
-        {{- if and .Values.outputOpenSearch.tls.enable (not (eq .Values.outputOpenSearch.tls.caConfigMapName "")) }}
-        - name: {{ .Values.outputOpenSearch.tls.caConfigMapName }}
+        {{- if and $.Values.outputOpenSearch.tls.enable (not (eq $.Values.outputOpenSearch.tls.caConfigMapName "")) }}
+        - name: {{ $.Values.outputOpenSearch.tls.caConfigMapName }}
           configMap:
-            name: {{ .Values.outputOpenSearch.tls.caConfigMapName }}
+            name: {{ $.Values.outputOpenSearch.tls.caConfigMapName }}
             items:
-              - key: {{ .Values.outputOpenSearch.tls.caConfigMapKey }}
-                path: {{ .Values.outputOpenSearch.tls.caFileName }}
+              - key: {{ $.Values.outputOpenSearch.tls.caConfigMapKey }}
+                path: {{ $.Values.outputOpenSearch.tls.caFileName }}
         {{- end }}
-        {{- if .Values.extraVolumes }}
-          {{- toYaml .Values.extraVolumes | nindent 8 }}
+        {{- if $.Values.extraVolumes }}
+          {{- toYaml $.Values.extraVolumes | nindent 8 }}
         {{- end }}
       {{- end }}
-      {{- with .Values.affinity }}
+      {{- with $.Values.affinity }}
       affinity:
         {{- toYaml . | nindent 8 }}
       {{- end }}
-      {{- with .Values.tolerations }}
+      {{- with $.Values.tolerations }}
       tolerations:
         {{- toYaml . | nindent 8 }}
       {{- end }}
-      {{- with .Values.topologySpreadConstraints }}
+      {{- with $.Values.topologySpreadConstraints }}
       topologySpreadConstraints:
         {{- toYaml . | nindent 8 }}
       {{- end }}
+{{- end }}

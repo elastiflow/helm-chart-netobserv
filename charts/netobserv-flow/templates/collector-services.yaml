@@ -1,37 +1,26 @@
 {{- if .Values.collectors }}
-{{- range $i, $ip := .Values.collectors }}
+{{- range .Values.collectors }}
 ---
 apiVersion: v1
 kind: Service
 metadata:
-  name: {{ include "netobserv.statefulsetName" $ }}-{{ $i }}
+  name: {{ include "netobserv.workloadName" (dict "root" $ "name" .name) }}
   labels:
     {{- include "netobserv.labels" $ | nindent 4 }}
-    app.kubernetes.io/component: collector
+    app.kubernetes.io/component: {{ .name | quote }}
   annotations: {{ $.Values.service.annotations | toYaml | nindent 4 }}
 spec:
-  type: {{ $.Values.service.type }}
-  {{- if $.Values.service.externalTrafficPolicy }}
-  externalTrafficPolicy: {{ $.Values.service.externalTrafficPolicy }}
-  {{- else }}
+  type: LoadBalancer
   externalTrafficPolicy: Local
-  {{- end }}
-  {{- if eq $.Values.service.type "LoadBalancer" }}
-  loadBalancerIP: {{ $ip | quote }}
-  {{- if $.Values.service.loadBalancerSourceRanges }}
+  loadBalancerIP: {{ .loadBalancerIP | quote }}
+  {{- with $.Values.service.loadBalancerSourceRanges }}
   loadBalancerSourceRanges:
-  {{- range $.Values.service.loadBalancerSourceRanges }}
-    - {{ . | quote }}
+    {{- toYaml . | nindent 4 }}
   {{- end }}
-  {{- end }}
-  {{- else }}
-  externalIPs:
-    - {{ $ip | quote }}
-  {{- end }}
-  ports: {{ $.Values.service.ports | toYaml | nindent 4 }}
+  ports:
+    {{- include "netobserv.udpServicePorts" $ | nindent 4 }}
   selector:
     {{- include "netobserv.selectorLabels" $ | nindent 4 }}
-    {{- /* pod-name pins the address to one pod so it is not load-balanced */}}
-    statefulset.kubernetes.io/pod-name: {{ include "netobserv.statefulsetName" $ }}-{{ $i }}
+    app.kubernetes.io/component: {{ .name | quote }}
 {{- end }}
 {{- end }}

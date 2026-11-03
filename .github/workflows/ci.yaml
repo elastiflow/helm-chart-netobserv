@@ -47,6 +47,8 @@ jobs:
         with:
           python-version: "3.14"
           check-latest: true
+      - name: Render collector addresses
+        run: charts/netobserv-flow/scripts/render-collectors.sh
       - name: Build helm dependencies
         run: |
           find charts -mindepth 1 -maxdepth 1 -type d | while read -r chart; do

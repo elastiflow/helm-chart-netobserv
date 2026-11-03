@@ -57,15 +57,17 @@ For additional environment configurations, please refer to the [configuration re
 
 Raising `replicaCount` puts every pod behind one Service. A load balancer then spreads each device's flows across collectors, and a collector can miss the templates it needs to decode that device.
 
-Set `collectors` to one IP per collector. The chart replaces the Deployment with a StatefulSet (one pod per address) and a Service that selects only that pod. Point each device at one address. Leave `collectors` empty to keep the single Deployment.
+Set `collectors` to one named collector per address. Each entry is its own Deployment and a LoadBalancer Service that selects only that Deployment. `externalTrafficPolicy` is `Local`, so the collector sees the device source address as long as the load balancer sends traffic to the node running that pod. Point each device at one address. Leave `collectors` empty to keep the single Deployment.
 
 ```yaml
 collectors:
-  - 192.0.2.10
-  - 192.0.2.11
+  - name: edge-a
+    loadBalancerIP: 192.0.2.10
+  - name: edge-b
+    loadBalancerIP: 192.0.2.11
 ```
 
-List order is the pod identity, so do not reorder it. This does not combine with `autoscaling`. The shared Service still selects every pod. Those per-address Services use `externalTrafficPolicy: Local` unless you set `service.externalTrafficPolicy`, so the device source address is kept. A packet that lands on a node without that pod is dropped. With the default `ClusterIP` Service, route each address to the node running that pod. When `service.type` is `LoadBalancer`, each address is that pod's `loadBalancerIP` instead.
+`name` is the identity. Reordering the list does not move an address. This does not combine with `autoscaling`, and `service.ports` must include a UDP port. Those UDP ports are only on the per-collector Services. The shared Service keeps the TCP ports, including the API, and still selects every pod. The address comes from a cloud load balancer or MetalLB. `loadBalancerIP` asks for a static address. `service.loadBalancerSourceRanges` applies to each of these Services.
 
 ### Prometheus Operator ServiceMonitor
 

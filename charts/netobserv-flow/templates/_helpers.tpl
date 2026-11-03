@@ -86,41 +86,93 @@ Create the name of the service account to use
   -}}
 {{- end -}}
 
-{{/*
-StatefulSet name when collectors is set.
-Truncated so "<name>-<ordinal>" still fits in a 63 character label value.
-shortcut: ordinals are a single digit, so collectors is capped at 10.
-*/}}
-{{- define "netobserv.statefulsetName" -}}
-{{- include "netobserv.fullname" . | trunc 61 | trimSuffix "-" -}}
+{{/* Deployment and Service name for one named collector, or the single Deployment. */}}
+{{- define "netobserv.workloadName" -}}
+{{- if .name -}}
+{{- printf "%s-%s" (include "netobserv.fullname" .root) .name -}}
+{{- else -}}
+{{- include "netobserv.fullname" .root -}}
+{{- end -}}
 {{- end -}}
 
 {{/* Reject collector settings that would not pin one address to one pod. */}}
 {{- define "netobserv.validateCollectors" -}}
 {{- if .Values.collectors -}}
 {{- if not (kindIs "slice" .Values.collectors) -}}
-{{- fail "collectors must be a list of IP addresses" -}}
-{{- end -}}
-{{- if gt (len .Values.collectors) 10 -}}
-{{- fail "collectors supports at most 10 addresses" -}}
+{{- fail "collectors must be a list" -}}
 {{- end -}}
 {{- if .Values.autoscaling.enabled -}}
 {{- fail "collectors cannot be used with autoscaling.enabled" -}}
 {{- end -}}
-{{- $seen := dict -}}
+{{- $udp := list -}}
+{{- range .Values.service.ports -}}
+{{- if eq .protocol "UDP" -}}
+{{- $udp = append $udp .protocol -}}
+{{- end -}}
+{{- end -}}
+{{- if not $udp -}}
+{{- fail "collectors requires at least one UDP service port" -}}
+{{- end -}}
+{{- $names := dict -}}
+{{- $ips := dict -}}
 {{- range .Values.collectors -}}
-{{- if not (kindIs "string" .) -}}
-{{- fail "collectors entries must be IP address strings" -}}
+{{- if not (kindIs "map" .) -}}
+{{- fail "collectors entries must be objects with name and loadBalancerIP" -}}
 {{- end -}}
-{{- if not . -}}
-{{- fail "collectors entries must be non-empty IP addresses" -}}
+{{- if not .name -}}
+{{- fail "collectors[].name is required" -}}
 {{- end -}}
-{{- if hasKey $seen . -}}
-{{- fail (printf "duplicate collector address %s" .) -}}
+{{- if not (regexMatch "^[a-z0-9]([-a-z0-9]*[a-z0-9])?$" .name) -}}
+{{- fail (printf "collector name %q must be a lowercase DNS label" .name) -}}
 {{- end -}}
-{{- $_ := set $seen . "1" -}}
+{{- if not .loadBalancerIP -}}
+{{- fail (printf "collector %s requires loadBalancerIP" .name) -}}
+{{- end -}}
+{{- if not (kindIs "string" .loadBalancerIP) -}}
+{{- fail (printf "collector %s loadBalancerIP must be a string" .name) -}}
+{{- end -}}
+{{- $full := printf "%s-%s" (include "netobserv.fullname" $) .name -}}
+{{- if gt (len $full) 63 -}}
+{{- fail (printf "collector name %s makes %s longer than 63 characters" .name $full) -}}
+{{- end -}}
+{{- if hasKey $names .name -}}
+{{- fail (printf "duplicate collector name %s" .name) -}}
+{{- end -}}
+{{- if hasKey $ips .loadBalancerIP -}}
+{{- fail (printf "duplicate collector address %s" .loadBalancerIP) -}}
+{{- end -}}
+{{- $_ := set $names .name "1" -}}
+{{- $_ := set $ips .loadBalancerIP "1" -}}
 {{- end -}}
 {{- end -}}
+{{- end -}}
+
+{{/* UDP service ports. These are the flow listeners pinned to one pod. */}}
+{{- define "netobserv.udpServicePorts" -}}
+{{- $out := list -}}
+{{- range .Values.service.ports -}}
+{{- if eq .protocol "UDP" -}}
+{{- $out = append $out . -}}
+{{- end -}}
+{{- end -}}
+{{- toYaml $out -}}
+{{- end -}}
+
+{{/*
+Non-UDP service ports for the shared Service.
+shortcut: if every service port is UDP, those ports stay on the shared Service and can still be balanced. Add a TCP port when that matters.
+*/}}
+{{- define "netobserv.nonUdpServicePorts" -}}
+{{- $out := list -}}
+{{- range .Values.service.ports -}}
+{{- if ne .protocol "UDP" -}}
+{{- $out = append $out . -}}
+{{- end -}}
+{{- end -}}
+{{- if not $out -}}
+{{- $out = .Values.service.ports -}}
+{{- end -}}
+{{- toYaml $out -}}
 {{- end -}}
 
 {{/* Define ElasticSearch credentials secret name */}}
