@@ -15,6 +15,11 @@ spec:
   selector:
     matchLabels:
       {{- include "netobserv.selectorLabels" . | nindent 6 }}
+    {{- if .Values.collectors }}
+    matchExpressions:
+      - key: app.kubernetes.io/component
+        operator: DoesNotExist
+    {{- end }}
   namespaceSelector:
     {{- if .Values.serviceMonitor.namespaceSelector.any }}
     any: true

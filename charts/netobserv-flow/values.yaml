@@ -2,6 +2,22 @@
 
 replicaCount: 1
 
+# One collector pod per address, each with that address as a Service externalIP
+# (or loadBalancerIP when service.type is LoadBalancer). An exporter pointed at
+# one of these addresses always reaches the same pod, which is what per-device
+# NetFlow templates need. Leave empty to run one Deployment via replicaCount.
+# Setting this replaces the Deployment with a StatefulSet.
+# List order is the pod identity: do not reorder it. At most 10 addresses.
+# Cannot be combined with autoscaling. The shared Service still selects every pod,
+# so point exporters at these addresses rather than at that Service.
+# These Services use externalTrafficPolicy Local unless service.externalTrafficPolicy
+# is set, so the exporter source address is kept. Local drops a packet that arrives
+# on a node where that pod is not running. With ClusterIP, route each address to
+# the node that runs that pod.
+collectors: []
+# - 192.0.2.10
+# - 192.0.2.11
+
 # The update strategy to apply to the Deployment.
 # Available options are: RollingUpdate and Recreate.
 strategy:

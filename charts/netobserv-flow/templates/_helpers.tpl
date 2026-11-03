@@ -86,6 +86,43 @@ Create the name of the service account to use
   -}}
 {{- end -}}
 
+{{/*
+StatefulSet name when collectors is set.
+Truncated so "<name>-<ordinal>" still fits in a 63 character label value.
+shortcut: ordinals are a single digit, so collectors is capped at 10.
+*/}}
+{{- define "netobserv.statefulsetName" -}}
+{{- include "netobserv.fullname" . | trunc 61 | trimSuffix "-" -}}
+{{- end -}}
+
+{{/* Reject collector settings that would not pin one address to one pod. */}}
+{{- define "netobserv.validateCollectors" -}}
+{{- if .Values.collectors -}}
+{{- if not (kindIs "slice" .Values.collectors) -}}
+{{- fail "collectors must be a list of IP addresses" -}}
+{{- end -}}
+{{- if gt (len .Values.collectors) 10 -}}
+{{- fail "collectors supports at most 10 addresses" -}}
+{{- end -}}
+{{- if .Values.autoscaling.enabled -}}
+{{- fail "collectors cannot be used with autoscaling.enabled" -}}
+{{- end -}}
+{{- $seen := dict -}}
+{{- range .Values.collectors -}}
+{{- if not (kindIs "string" .) -}}
+{{- fail "collectors entries must be IP address strings" -}}
+{{- end -}}
+{{- if not . -}}
+{{- fail "collectors entries must be non-empty IP addresses" -}}
+{{- end -}}
+{{- if hasKey $seen . -}}
+{{- fail (printf "duplicate collector address %s" .) -}}
+{{- end -}}
+{{- $_ := set $seen . "1" -}}
+{{- end -}}
+{{- end -}}
+{{- end -}}
+
 {{/* Define ElasticSearch credentials secret name */}}
 {{- define "netobserv.elasticSearchCredentialsSecretName" -}}
   {{- if (.Values.outputElasticSearch.secretName | empty) -}}

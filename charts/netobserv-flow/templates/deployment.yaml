@@ -1,18 +1,28 @@
+{{- include "netobserv.validateCollectors" . -}}
 apiVersion: apps/v1
-kind: Deployment
+kind: {{ if .Values.collectors }}StatefulSet{{ else }}Deployment{{ end }}
 metadata:
-  name: {{ include "netobserv.fullname" . }}
+  name: {{ if .Values.collectors }}{{ include "netobserv.statefulsetName" . }}{{ else }}{{ include "netobserv.fullname" . }}{{ end }}
   namespace: {{ .Release.Namespace }}
   labels:
     {{- include "netobserv.labels" . | nindent 4 }}
 spec:
-  {{- if not .Values.autoscaling.enabled }}
+  {{- if .Values.collectors }}
+  serviceName: {{ include "netobserv.fullname" . }}
+  replicas: {{ len .Values.collectors }}
+  podManagementPolicy: Parallel
+  {{- else if not .Values.autoscaling.enabled }}
   replicas: {{ .Values.replicaCount }}
   {{- end }}
   selector:
     matchLabels:
       {{- include "netobserv.selectorLabels" . | nindent 6 }}
+  {{- if .Values.collectors }}
+  updateStrategy:
+    type: {{ eq .Values.strategy.type "Recreate" | ternary "OnDelete" "RollingUpdate" }}
+  {{- else }}
   strategy: {{ .Values.strategy | toYaml | nindent 6 }}
+  {{- end }}
   template:
     metadata:
       {{- with .Values.podAnnotations }}

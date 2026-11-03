@@ -1,0 +1,37 @@
+{{- if .Values.collectors }}
+{{- range $i, $ip := .Values.collectors }}
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ include "netobserv.statefulsetName" $ }}-{{ $i }}
+  labels:
+    {{- include "netobserv.labels" $ | nindent 4 }}
+    app.kubernetes.io/component: collector
+  annotations: {{ $.Values.service.annotations | toYaml | nindent 4 }}
+spec:
+  type: {{ $.Values.service.type }}
+  {{- if $.Values.service.externalTrafficPolicy }}
+  externalTrafficPolicy: {{ $.Values.service.externalTrafficPolicy }}
+  {{- else }}
+  externalTrafficPolicy: Local
+  {{- end }}
+  {{- if eq $.Values.service.type "LoadBalancer" }}
+  loadBalancerIP: {{ $ip | quote }}
+  {{- if $.Values.service.loadBalancerSourceRanges }}
+  loadBalancerSourceRanges:
+  {{- range $.Values.service.loadBalancerSourceRanges }}
+    - {{ . | quote }}
+  {{- end }}
+  {{- end }}
+  {{- else }}
+  externalIPs:
+    - {{ $ip | quote }}
+  {{- end }}
+  ports: {{ $.Values.service.ports | toYaml | nindent 4 }}
+  selector:
+    {{- include "netobserv.selectorLabels" $ | nindent 4 }}
+    {{- /* pod-name pins the address to one pod so it is not load-balanced */}}
+    statefulset.kubernetes.io/pod-name: {{ include "netobserv.statefulsetName" $ }}-{{ $i }}
+{{- end }}
+{{- end }}
